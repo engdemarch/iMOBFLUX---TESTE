@@ -1,0 +1,76 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500&family=Rajdhani:wght@600;700&family=Space+Grotesk:wght@600;700;800&family=Syne:wght@700;800&family=Unbounded:wght@700;800&display=swap');
+
+:root {
+  --stone: #F2F4F6;
+  --paper: #FFFFFF;
+  --ink: #15263A;
+  --ink-soft: #68707C;
+  --charcoal: #122234;
+  --brass: #0F3D5C;
+  --brass-dark: #0B2C44;
+  --line: #DEE2E7;
+  --danger: #A8452F;
+  --radius: 4px;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+body {
+  background-color: var(--stone);
+  color: var(--ink);
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 16px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Space Grotesk', 'Plus Jakarta Sans', sans-serif;
+  letter-spacing: -0.02em;
+}
+
+.mono {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.font-brand {
+  font-family: 'Unbounded', 'Syne', sans-serif;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #F2F4F6;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cfcabb;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a394;
+}
+
+/* Crop checkerboard background */
+.crop-checkerboard {
+  background-image: repeating-conic-gradient(#e6e6e6 0% 25%, #f7f7f7 0% 50%);
+  background-size: 20px 20px;
+}
+
+.crop-checkerboard-small {
+  background-image: repeating-conic-gradient(#e6e6e6 0% 25%, #f7f7f7 0% 50%);
+  background-size: 12px 12px;
+}

@@ -1,0 +1,8 @@
+{
+  "name": "Site Corretor de Imóveis",
+  "description": "Plataforma e catálogo de imóveis com busca avançada, galeria de fotos e área administrativa do corretor.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
