@@ -31,8 +31,8 @@ export const LocationMap: React.FC<LocationMapProps> = ({ config }) => {
     <section className="py-20 bg-white border-t border-[#DEE2E7]" id="atendimento">
       <div className="max-w-[1180px] mx-auto px-5 sm:px-8">
         <div className="mb-10 text-center sm:text-left">
-          <div className="text-xs font-semibold tracking-[0.12em] uppercase text-[#0F3D5C] mb-2 flex items-center justify-center sm:justify-start gap-1.5">
-            <MapPin className="w-4 h-4 text-[#0F3D5C]" />
+          <div className="text-xs font-semibold tracking-[0.12em] uppercase text-[var(--t-primary)] mb-2 flex items-center justify-center sm:justify-start gap-1.5">
+            <MapPin className="w-4 h-4 text-[var(--t-primary)]" />
             <span>Localização e Atendimento</span>
           </div>
           <h2 className="text-3xl sm:text-4xl font-bold text-[#15263A] tracking-tight">
@@ -47,14 +47,14 @@ export const LocationMap: React.FC<LocationMapProps> = ({ config }) => {
           {/* Info Card */}
           <div className="lg:col-span-5 bg-[#F2F4F6] border border-[#DEE2E7] p-8 flex flex-col justify-between rounded-[2px] shadow-sm">
             <div>
-              <div className="inline-block bg-[#0F3D5C] text-white text-[11px] font-bold px-2.5 py-1 rounded-[2px] uppercase tracking-wider mb-6">
+              <div className="inline-block bg-[var(--t-primary)] text-white text-[11px] font-bold px-2.5 py-1 rounded-[2px] uppercase tracking-wider mb-6">
                 Escritório de Atendimento
               </div>
 
               <div className="space-y-6 text-[#15263A]">
                 {/* Address */}
                 <div className="flex items-start gap-3.5">
-                  <div className="w-10 h-10 rounded-full bg-[#FFFFFF] border border-[#DEE2E7] flex items-center justify-center text-[#0F3D5C] shrink-0 mt-0.5">
+                  <div className="w-10 h-10 rounded-full bg-[#FFFFFF] border border-[#DEE2E7] flex items-center justify-center text-[var(--t-primary)] shrink-0 mt-0.5">
                     <MapPin className="w-5 h-5" />
                   </div>
                   <div>
@@ -69,7 +69,7 @@ export const LocationMap: React.FC<LocationMapProps> = ({ config }) => {
 
                 {/* Hours */}
                 <div className="flex items-start gap-3.5">
-                  <div className="w-10 h-10 rounded-full bg-[#FFFFFF] border border-[#DEE2E7] flex items-center justify-center text-[#0F3D5C] shrink-0 mt-0.5">
+                  <div className="w-10 h-10 rounded-full bg-[#FFFFFF] border border-[#DEE2E7] flex items-center justify-center text-[var(--t-primary)] shrink-0 mt-0.5">
                     <Clock className="w-5 h-5" />
                   </div>
                   <div>
@@ -86,7 +86,7 @@ export const LocationMap: React.FC<LocationMapProps> = ({ config }) => {
                 {/* Contact */}
                 {config.telefone && (
                   <div className="flex items-start gap-3.5">
-                    <div className="w-10 h-10 rounded-full bg-[#FFFFFF] border border-[#DEE2E7] flex items-center justify-center text-[#0F3D5C] shrink-0 mt-0.5">
+                    <div className="w-10 h-10 rounded-full bg-[#FFFFFF] border border-[#DEE2E7] flex items-center justify-center text-[var(--t-primary)] shrink-0 mt-0.5">
                       <Phone className="w-5 h-5" />
                     </div>
                     <div>
@@ -95,7 +95,7 @@ export const LocationMap: React.FC<LocationMapProps> = ({ config }) => {
                       </span>
                       <a
                         href={`tel:${config.telefone.replace(/\D/g, '')}`}
-                        className="text-base font-semibold text-[#0F3D5C] hover:underline"
+                        className="text-base font-semibold text-[var(--t-primary)] hover:underline"
                       >
                         {config.telefone}
                       </a>
@@ -105,7 +105,7 @@ export const LocationMap: React.FC<LocationMapProps> = ({ config }) => {
 
                 {config.email && (
                   <div className="flex items-start gap-3.5">
-                    <div className="w-10 h-10 rounded-full bg-[#FFFFFF] border border-[#DEE2E7] flex items-center justify-center text-[#0F3D5C] shrink-0 mt-0.5">
+                    <div className="w-10 h-10 rounded-full bg-[#FFFFFF] border border-[#DEE2E7] flex items-center justify-center text-[var(--t-primary)] shrink-0 mt-0.5">
                       <Mail className="w-5 h-5" />
                     </div>
                     <div>
@@ -130,7 +130,7 @@ export const LocationMap: React.FC<LocationMapProps> = ({ config }) => {
                 href={googleMapsDirectionsUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 bg-[#0F3D5C] hover:bg-[#0B2C44] text-white text-xs font-bold uppercase tracking-wider rounded-[2px] transition-colors shadow-sm"
+                className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 bg-[var(--t-primary)] hover:bg-[var(--t-primary-dark)] text-white text-xs font-bold uppercase tracking-wider rounded-[2px] transition-colors shadow-sm"
               >
                 <Navigation className="w-4 h-4" />
                 <span>Como Chegar (Google Maps)</span>

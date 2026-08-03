@@ -2,6 +2,7 @@ import { getStripe } from '@/lib/stripe';
 import { getSupabaseAdmin } from '@/lib/supabase/admin';
 import { getUserFromRequest } from '@/lib/supabase/serverAuth';
 import { isSlugFormatValid, isSlugReserved } from '@/lib/host';
+import { TEMPLATES, DEFAULT_TEMPLATE } from '@/lib/templates';
 
 export const runtime = 'nodejs';
 
@@ -14,6 +15,7 @@ export async function POST(req: Request) {
   const body = await req.json().catch(() => null);
   const slug = (body?.slug ?? '').trim().toLowerCase();
   const businessName = (body?.businessName ?? '').trim();
+  const template = TEMPLATES.some((t) => t.id === body?.template) ? body.template : DEFAULT_TEMPLATE;
 
   if (!isSlugFormatValid(slug)) {
     return Response.json({ error: 'Endereço inválido.' }, { status: 400 });
@@ -59,7 +61,8 @@ export async function POST(req: Request) {
     metadata: {
       supabase_user_id: user.id,
       slug,
-      business_name: businessName
+      business_name: businessName,
+      template
     }
   });
 

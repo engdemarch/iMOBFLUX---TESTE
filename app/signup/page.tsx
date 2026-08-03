@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import { isSlugFormatValid, isSlugReserved } from '@/lib/host';
+import { TEMPLATES, DEFAULT_TEMPLATE, TemplateId } from '@/lib/templates';
 
 // Fase 3: o cadastro não grava mais o tenant direto do navegador — depois de
 // criar a conta no Supabase Auth, o usuário é enviado pro Checkout do Stripe;
@@ -23,6 +24,7 @@ export default function SignupPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [slug, setSlug] = useState('');
   const [businessName, setBusinessName] = useState('');
+  const [template, setTemplate] = useState<TemplateId>(DEFAULT_TEMPLATE);
 
   // Login
   const [loginEmail, setLoginEmail] = useState('');
@@ -107,7 +109,7 @@ export default function SignupPage() {
     const res = await fetch('/api/checkout', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
-      body: JSON.stringify({ slug: normalizedSlug, businessName: businessName.trim() })
+      body: JSON.stringify({ slug: normalizedSlug, businessName: businessName.trim(), template })
     });
     const data = await res.json();
 
@@ -391,6 +393,35 @@ export default function SignupPage() {
                     Seu site: <span className="font-medium">{normalizedSlug}.{rootDomain}</span>
                   </p>
                 )}
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold tracking-wider uppercase text-[#68707C] mb-1.5">
+                  Template do site
+                </label>
+                <div className="space-y-2">
+                  {TEMPLATES.map((t) => (
+                    <button
+                      key={t.id}
+                      type="button"
+                      onClick={() => setTemplate(t.id)}
+                      className={`w-full flex items-center gap-3 p-3 border rounded-[2px] text-left transition-colors ${
+                        template === t.id
+                          ? 'border-[#0F3D5C] bg-[#EAF0F6]'
+                          : 'border-[#DEE2E7] hover:border-[#0F3D5C]/50'
+                      }`}
+                    >
+                      <span
+                        className="w-8 h-8 rounded-full shrink-0"
+                        style={{ background: `linear-gradient(135deg, ${t.primary}, ${t.primaryDark})` }}
+                      />
+                      <span className="min-w-0">
+                        <span className="block text-xs font-bold text-[#15263A]">{t.nome}</span>
+                        <span className="block text-[11px] text-[#68707C] leading-snug">{t.descricao}</span>
+                      </span>
+                    </button>
+                  ))}
+                </div>
               </div>
 
               <div>

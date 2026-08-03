@@ -2,6 +2,7 @@ import Stripe from 'stripe';
 import { getStripe } from '@/lib/stripe';
 import { getSupabaseAdmin } from '@/lib/supabase/admin';
 import { DEFAULT_CONFIG } from '@/lib/storage';
+import { TEMPLATES, DEFAULT_TEMPLATE } from '@/lib/templates';
 
 export const runtime = 'nodejs';
 
@@ -47,6 +48,9 @@ export async function POST(req: Request) {
       const supabaseUserId = session.metadata?.supabase_user_id;
       const slug = session.metadata?.slug;
       const businessName = session.metadata?.business_name;
+      const template = TEMPLATES.some((t) => t.id === session.metadata?.template)
+        ? session.metadata!.template
+        : DEFAULT_TEMPLATE;
 
       if (!supabaseUserId || !slug || !session.subscription || !session.customer) {
         console.error('checkout.session.completed sem metadata esperada:', session.id);
@@ -64,7 +68,7 @@ export async function POST(req: Request) {
         billing_provider: 'stripe',
         billing_customer_id: session.customer as string,
         billing_subscription_id: session.subscription as string,
-        config: { ...DEFAULT_CONFIG, nome: businessName || DEFAULT_CONFIG.nome }
+        config: { ...DEFAULT_CONFIG, nome: businessName || DEFAULT_CONFIG.nome, template }
       };
 
       const { error } = await getSupabaseAdmin()

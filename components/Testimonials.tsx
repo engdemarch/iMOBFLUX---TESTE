@@ -66,7 +66,7 @@ export const Testimonials: React.FC<TestimonialsProps> = ({ testimonials }) => {
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-6">
           <div>
-            <div className="text-xs font-semibold tracking-[0.12em] uppercase text-[#0F3D5C] mb-2 flex items-center gap-2">
+            <div className="text-xs font-semibold tracking-[0.12em] uppercase text-[var(--t-primary)] mb-2 flex items-center gap-2">
               <span>Depoimentos & Avaliações</span>
             </div>
             <h2 className="text-3xl sm:text-4xl font-bold text-[#15263A] tracking-tight">
@@ -85,7 +85,7 @@ export const Testimonials: React.FC<TestimonialsProps> = ({ testimonials }) => {
                 <button
                   onClick={handlePrev}
                   title="Anteriores"
-                  className="w-10 h-10 bg-white border border-[#DEE2E7] hover:border-[#0F3D5C] hover:text-[#0F3D5C] text-[#15263A] flex items-center justify-center rounded-[2px] transition-colors shadow-xs"
+                  className="w-10 h-10 bg-white border border-[#DEE2E7] hover:border-[var(--t-primary)] hover:text-[var(--t-primary)] text-[#15263A] flex items-center justify-center rounded-[2px] transition-colors shadow-xs"
                 >
                   <ChevronLeft className="w-5 h-5" />
                 </button>
@@ -95,7 +95,7 @@ export const Testimonials: React.FC<TestimonialsProps> = ({ testimonials }) => {
                 <button
                   onClick={handleNext}
                   title="Próximos"
-                  className="w-10 h-10 bg-white border border-[#DEE2E7] hover:border-[#0F3D5C] hover:text-[#0F3D5C] text-[#15263A] flex items-center justify-center rounded-[2px] transition-colors shadow-xs"
+                  className="w-10 h-10 bg-white border border-[#DEE2E7] hover:border-[var(--t-primary)] hover:text-[var(--t-primary)] text-[#15263A] flex items-center justify-center rounded-[2px] transition-colors shadow-xs"
                 >
                   <ChevronRight className="w-5 h-5" />
                 </button>
@@ -116,7 +116,7 @@ export const Testimonials: React.FC<TestimonialsProps> = ({ testimonials }) => {
                 key={t.id}
                 className="bg-white border border-[#DEE2E7] p-7 flex flex-col justify-between rounded-[2px] shadow-xs hover:shadow-md transition-all relative group"
               >
-                <Quote className="absolute top-6 right-6 w-5 h-5 opacity-20 text-[#0F3D5C]" />
+                <Quote className="absolute top-6 right-6 w-5 h-5 opacity-20 text-[var(--t-primary)]" />
 
                 <div>
                   {/* Rating Stars */}
@@ -138,7 +138,7 @@ export const Testimonials: React.FC<TestimonialsProps> = ({ testimonials }) => {
                       className="w-10 h-10 rounded-full object-cover border border-[#DEE2E7] shrink-0"
                     />
                   ) : (
-                    <div className="w-10 h-10 rounded-full bg-[#0F3D5C] text-white font-bold text-sm flex items-center justify-center shrink-0 uppercase">
+                    <div className="w-10 h-10 rounded-full bg-[var(--t-primary)] text-white font-bold text-sm flex items-center justify-center shrink-0 uppercase">
                       {t.nome.charAt(0)}
                     </div>
                   )}
@@ -165,7 +165,7 @@ export const Testimonials: React.FC<TestimonialsProps> = ({ testimonials }) => {
                 title={`Página ${i + 1}`}
                 className={`h-2.5 rounded-full transition-all ${
                   i === currentPage
-                    ? 'w-8 bg-[#0F3D5C]'
+                    ? 'w-8 bg-[var(--t-primary)]'
                     : 'w-2.5 bg-[#CBD5E1] hover:bg-[#94A3B8]'
                 }`}
               />

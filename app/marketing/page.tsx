@@ -13,6 +13,7 @@ import {
   Users,
   Zap
 } from 'lucide-react';
+import { TEMPLATES } from '@/lib/templates';
 
 const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'localhost';
 
@@ -152,6 +153,72 @@ export default function MarketingPage() {
                 </div>
               );
             })}
+          </div>
+        </div>
+      </section>
+
+      {/* Templates */}
+      <section className="bg-white border-y border-[#DEE2E7]">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-16 sm:py-24">
+          <div className="text-center max-w-xl mx-auto mb-14">
+            <div className="text-xs font-semibold tracking-[0.12em] uppercase text-[#0F3D5C] mb-2">
+              Escolha o visual
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-bold mb-3">Comece com o template que combina com você</h2>
+            <p className="text-sm text-[#68707C]">
+              Você escolhe no cadastro — dá pra trocar depois. Mais opções chegando em breve.
+            </p>
+          </div>
+          <div className="grid sm:grid-cols-2 gap-6 max-w-3xl mx-auto">
+            {TEMPLATES.map((t) => (
+              <div key={t.id} className="text-left">
+                {/* Browser chrome mockup */}
+                <div className="border border-[#DEE2E7] rounded-[6px] overflow-hidden shadow-sm bg-white">
+                  <div className="h-8 bg-[#F2F4F6] border-b border-[#DEE2E7] flex items-center gap-1.5 px-3">
+                    <span className="w-2 h-2 rounded-full bg-[#DEE2E7]" />
+                    <span className="w-2 h-2 rounded-full bg-[#DEE2E7]" />
+                    <span className="w-2 h-2 rounded-full bg-[#DEE2E7]" />
+                  </div>
+
+                  {t.id === 'classico' ? (
+                    <div style={{ background: t.primaryDark }} className="aspect-[16/10] flex flex-col justify-end p-4 gap-2">
+                      <div className="w-1/2 h-2 rounded-full bg-white/30" />
+                      <div className="w-3/4 h-3 rounded-full bg-white/70" />
+                      <div className="w-2/3 h-3 rounded-full bg-white/70" />
+                      <div className="flex gap-1.5 mt-2">
+                        <div className="flex-1 h-10 rounded-[2px] bg-white/15" />
+                        <div className="flex-1 h-10 rounded-[2px] bg-white/15" />
+                        <div className="flex-1 h-10 rounded-[2px] bg-white/15" />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="aspect-[16/10] bg-[#F4F6F8] flex items-center gap-3 p-4">
+                      <div className="flex-1 space-y-2">
+                        <div className="w-4/5 h-2.5 rounded-full" style={{ background: `${t.primary}33` }} />
+                        <div className="w-full h-3.5 rounded-full bg-[#D9DEE3]" />
+                        <div className="w-3/4 h-3.5 rounded-full bg-[#D9DEE3]" />
+                        <div
+                          className="mt-2 w-20 h-6 rounded-full"
+                          style={{ background: t.primary }}
+                        />
+                      </div>
+                      <div className="flex-1 h-full rounded-2xl" style={{ background: `${t.primary}55` }} />
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2.5 mt-4">
+                  <span
+                    className="w-6 h-6 rounded-full shrink-0"
+                    style={{ background: `linear-gradient(135deg, ${t.primary}, ${t.primaryDark})` }}
+                  />
+                  <div>
+                    <div className="text-sm font-bold text-[#15263A]">{t.nome}</div>
+                    <div className="text-xs text-[#68707C]">{t.descricao}</div>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>

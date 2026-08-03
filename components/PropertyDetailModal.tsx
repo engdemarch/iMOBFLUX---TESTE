@@ -138,14 +138,14 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
             <div className="mt-4 p-3.5 bg-[#EAF0F6] border border-[#DEE2E7] rounded-[2px] flex flex-wrap items-center justify-between gap-3">
               {property.tags && property.tags.length > 0 && (
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-[11px] font-bold text-[#0F3D5C] uppercase tracking-wider flex items-center gap-1">
-                    <Tag className="w-3.5 h-3.5 text-[#0F3D5C]" />
+                  <span className="text-[11px] font-bold text-[var(--t-primary)] uppercase tracking-wider flex items-center gap-1">
+                    <Tag className="w-3.5 h-3.5 text-[var(--t-primary)]" />
                     Diferenciais:
                   </span>
                   {property.tags.map((t, idx) => (
                     <span
                       key={idx}
-                      className="px-2.5 py-1 bg-white text-[#0F3D5C] text-xs font-semibold rounded-[2px] border border-[#CBD5E1] shadow-2xs"
+                      className="px-2.5 py-1 bg-white text-[var(--t-primary)] text-xs font-semibold rounded-[2px] border border-[#CBD5E1] shadow-2xs"
                     >
                       {t}
                     </span>
@@ -190,7 +190,7 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
           {/* Location Map (approximate, by neighborhood — exact street address is kept private) */}
           {(property.bairro || property.cidade) && (
             <div className="mt-6 border-t border-[#DEE2E7] pt-6">
-              <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-[#0F3D5C] mb-3">
+              <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-[var(--t-primary)] mb-3">
                 <MapPin className="w-3.5 h-3.5" />
                 <span>Localização aproximada</span>
               </div>
@@ -222,12 +222,12 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
                     className="w-12 h-12 rounded-full object-cover border border-[#CBD5E1] shrink-0"
                   />
                 ) : (
-                  <div className="w-12 h-12 rounded-full bg-[#0F3D5C] text-white font-bold text-sm flex items-center justify-center shrink-0">
+                  <div className="w-12 h-12 rounded-full bg-[var(--t-primary)] text-white font-bold text-sm flex items-center justify-center shrink-0">
                     {property.corretorNome.charAt(0)}
                   </div>
                 )}
                 <div>
-                  <div className="text-[10px] font-bold uppercase tracking-wider text-[#0F3D5C]">
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-[var(--t-primary)]">
                     Corretor Agenciador
                   </div>
                   <div className="text-sm sm:text-base font-bold text-[#15263A]">
@@ -257,7 +257,7 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
               href={waUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-6 py-3.5 bg-[#0F3D5C] hover:bg-[#0B2C44] text-white text-xs sm:text-sm font-semibold uppercase tracking-wider rounded-[2px] transition-colors shadow-sm"
+              className="inline-flex items-center gap-2 px-6 py-3.5 bg-[var(--t-primary)] hover:bg-[var(--t-primary-dark)] text-white text-xs sm:text-sm font-semibold uppercase tracking-wider rounded-[2px] transition-colors shadow-sm"
             >
               <MessageCircle className="w-5 h-5" />
               <span>Falar sobre este imóvel</span>
