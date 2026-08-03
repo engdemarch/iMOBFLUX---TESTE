@@ -26,13 +26,14 @@ import {
   UserCheck,
   Tag,
   Calendar,
-  Users
+  Users,
+  CreditCard
 } from 'lucide-react';
 import { Property, SiteConfig, Testimonial, Corretor } from '@/lib/types';
 import { formatPrice, formatRefCode, MAX_PHOTO_SIZE_MB } from '@/lib/storage';
 import { supabase } from '@/lib/supabase/client';
 import { resizeAndUploadImage, uploadDataUrl } from '@/lib/supabase/storage';
-import { resolveOwnerTenantId } from '@/lib/db';
+import { resolveOwnerTenantId, getOwnerBillingInfo, OwnerBillingInfo } from '@/lib/db';
 import { ESTADOS_BR, fetchEnderecoPorCep, formatCep } from '@/lib/brasil';
 import { LogoCropModal } from './LogoCropModal';
 import { CidadeSelect } from './CidadeSelect';
@@ -87,6 +88,11 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
   const [loginPass, setLoginPass] = useState('');
   const [loginError, setLoginError] = useState('');
 
+  // Assinatura (Fase 3)
+  const [billingInfo, setBillingInfo] = useState<OwnerBillingInfo | null>(null);
+  const [billingLoading, setBillingLoading] = useState(false);
+  const [billingError, setBillingError] = useState('');
+
   useEffect(() => {
     resolveOwnerTenantId().then(setOwnerTenantId);
     const { data: subscription } = supabase.auth.onAuthStateChange(() => {
@@ -95,8 +101,34 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
     return () => subscription.subscription.unsubscribe();
   }, []);
 
+  useEffect(() => {
+    if (isLoggedIn) {
+      getOwnerBillingInfo(tenantId).then(setBillingInfo);
+    }
+  }, [isLoggedIn, tenantId]);
+
+  const handleManageBilling = async () => {
+    setBillingError('');
+    setBillingLoading(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch('/api/billing-portal', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${session?.access_token}` }
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setBillingError(data.error || 'Não foi possível abrir o portal de assinatura.');
+        return;
+      }
+      window.location.href = data.url;
+    } finally {
+      setBillingLoading(false);
+    }
+  };
+
   // Active Tab
-  const [activeTab, setActiveTab] = useState<'imoveis' | 'form' | 'config' | 'testemunhos' | 'corretores' | 'seguranca'>('imoveis');
+  const [activeTab, setActiveTab] = useState<'imoveis' | 'form' | 'config' | 'testemunhos' | 'corretores' | 'seguranca' | 'assinatura'>('imoveis');
   const [formSection, setFormSection] = useState<'imovel' | 'proprietario' | 'corretor'>('imovel');
 
   // Security / Credentials State
@@ -1071,6 +1103,18 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
                   >
                     <Lock className="w-3.5 h-3.5" />
                     <span>Acesso & Senha</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('assinatura')}
+                    className={`px-4 py-2.5 text-xs sm:text-sm font-semibold tracking-wider border-b-2 transition-colors whitespace-nowrap inline-flex items-center gap-1.5 ${
+                      activeTab === 'assinatura'
+                        ? 'border-[#0F3D5C] text-[#0F3D5C]'
+                        : 'border-transparent text-[#68707C] hover:text-[#15263A]'
+                    }`}
+                  >
+                    <CreditCard className="w-3.5 h-3.5" />
+                    <span>Assinatura</span>
                   </button>
                 </div>
 
@@ -3135,6 +3179,67 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
                       </div>
                     </div>
                   </form>
+                )}
+
+                {activeTab === 'assinatura' && (
+                  <div className="max-w-xl space-y-6">
+                    <div className="bg-[#F2F4F6] border border-[#DEE2E7] p-5 rounded-[2px] space-y-4">
+                      <div className="flex items-center gap-2.5 text-[#0F3D5C] pb-3 border-b border-[#DEE2E7]">
+                        <CreditCard className="w-5 h-5" />
+                        <h3 className="font-bold text-sm tracking-wider uppercase">
+                          Assinatura
+                        </h3>
+                      </div>
+
+                      {billingError && (
+                        <div className="p-3.5 text-xs font-semibold rounded-[2px] flex items-center gap-2.5 bg-[#F7EAE6] text-[#A8452F] border border-[#E4C3B9]">
+                          <X className="w-4 h-4 shrink-0" />
+                          <span>{billingError}</span>
+                        </div>
+                      )}
+
+                      {billingInfo ? (
+                        <>
+                          <div>
+                            <span className="block text-xs font-semibold tracking-wider uppercase text-[#68707C] mb-1.5">
+                              Status
+                            </span>
+                            <span className="inline-block px-3 py-1 text-xs font-bold uppercase tracking-wider rounded-[2px] bg-white border border-[#DEE2E7] text-[#15263A]">
+                              {
+                                {
+                                  trialing: 'Período de teste',
+                                  active: 'Ativa',
+                                  past_due: 'Pagamento pendente',
+                                  canceled: 'Cancelada',
+                                  suspended: 'Suspensa'
+                                }[billingInfo.status] || billingInfo.status
+                              }
+                            </span>
+                          </div>
+
+                          {billingInfo.trial_ends_at && (
+                            <p className="text-xs text-[#68707C]">
+                              Teste grátis até{' '}
+                              <span className="font-semibold text-[#15263A]">
+                                {new Date(billingInfo.trial_ends_at).toLocaleDateString('pt-BR')}
+                              </span>
+                            </p>
+                          )}
+
+                          <button
+                            type="button"
+                            onClick={handleManageBilling}
+                            disabled={billingLoading}
+                            className="px-6 py-2.5 bg-[#0F3D5C] hover:bg-[#0B2C44] disabled:opacity-50 text-white text-xs font-bold tracking-wider uppercase rounded-[2px] transition-colors"
+                          >
+                            {billingLoading ? 'Abrindo...' : 'Gerenciar assinatura'}
+                          </button>
+                        </>
+                      ) : (
+                        <p className="text-xs text-[#68707C]">Carregando dados da assinatura...</p>
+                      )}
+                    </div>
+                  </div>
                 )}
               </div>
             )}

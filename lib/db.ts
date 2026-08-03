@@ -48,6 +48,33 @@ export async function getConfig(tenantId: string): Promise<SiteConfig> {
   return { ...DEFAULT_CONFIG, ...(data?.config as Partial<SiteConfig> | undefined) };
 }
 
+// Status público do tenant (trialing|active|past_due|canceled|suspended),
+// usado por app/page.tsx para decidir se o site fica no ar.
+export async function getTenantStatus(tenantId: string): Promise<string | null> {
+  const { data } = await supabase
+    .from('tenants_public')
+    .select('status')
+    .eq('id', tenantId)
+    .maybeSingle();
+  return data?.status ?? null;
+}
+
+export interface OwnerBillingInfo {
+  status: string;
+  trial_ends_at: string | null;
+  plan_slug: string | null;
+}
+
+// Dados de cobrança visíveis só ao dono (tabela base, não a view pública).
+export async function getOwnerBillingInfo(tenantId: string): Promise<OwnerBillingInfo | null> {
+  const { data } = await supabase
+    .from('tenants')
+    .select('status, trial_ends_at, plan_slug')
+    .eq('id', tenantId)
+    .maybeSingle();
+  return data;
+}
+
 export async function saveConfig(tenantId: string, config: SiteConfig): Promise<boolean> {
   const { error } = await supabase
     .from('tenants')

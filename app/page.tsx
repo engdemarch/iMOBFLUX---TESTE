@@ -9,6 +9,7 @@ import {
   getProperties,
   getTestimonials,
   getCorretores,
+  getTenantStatus,
   saveConfig,
   saveProperties,
   saveTestimonials,
@@ -16,6 +17,7 @@ import {
 } from '@/lib/db';
 import { supabase } from '@/lib/supabase/client';
 
+import { SiteUnavailable } from '@/components/SiteUnavailable';
 import { Header } from '@/components/Header';
 import { Hero } from '@/components/Hero';
 import { SearchBar } from '@/components/SearchBar';
@@ -32,6 +34,7 @@ import { BrokerModal } from '@/components/BrokerModal';
 
 export default function Home() {
   const [tenantId, setTenantId] = useState<string | null>(null);
+  const [tenantStatus, setTenantStatus] = useState<string | null>(null);
   const [config, setConfig] = useState<SiteConfig>(DEFAULT_CONFIG);
   const [properties, setProperties] = useState<Property[]>(DEMO_PROPERTIES);
   const [testimonials, setTestimonials] = useState<Testimonial[]>(DEMO_TESTIMONIALS);
@@ -51,16 +54,18 @@ export default function Home() {
     const id = await resolveTenantId();
     setTenantId(id);
     if (!id) return;
-    const [cfg, props, tests, corrs] = await Promise.all([
+    const [cfg, props, tests, corrs, status] = await Promise.all([
       getConfig(id),
       getProperties(id),
       getTestimonials(id),
-      getCorretores(id)
+      getCorretores(id),
+      getTenantStatus(id)
     ]);
     setConfig(cfg);
     setProperties(props);
     setTestimonials(tests);
     setCorretores(corrs);
+    setTenantStatus(status);
   }, []);
 
   useEffect(() => {
@@ -83,8 +88,17 @@ export default function Home() {
     }
   };
 
+  // Assinatura pendente/cancelada/suspensa: o site sai do ar pra qualquer
+  // visitante. trialing e active continuam funcionando normalmente. O acesso
+  // discreto do corretor (BrokerFab/BrokerModal) permanece disponível pra ele
+  // conseguir entrar e resolver o pagamento.
+  const isBlocked = tenantId !== null && tenantStatus !== null &&
+    ['past_due', 'canceled', 'suspended'].includes(tenantStatus);
+
   return (
     <div className="min-h-screen flex flex-col font-sans">
+      {isBlocked ? <SiteUnavailable /> : (
+      <>
       {/* Header */}
       <Header
         config={config}
@@ -132,6 +146,8 @@ export default function Home() {
         config={config}
         onOpenBrokerModal={() => setBrokerModalOpen(true)}
       />
+      </>
+      )}
 
       {/* Property Detail Modal */}
       <PropertyDetailModal
