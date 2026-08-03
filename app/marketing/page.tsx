@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { TEMPLATES } from '@/lib/templates';
 import { TemplatePreview } from '@/components/templates/TemplatePreview';
+import { LiveDemoShowcase } from '@/components/templates/LiveDemoShowcase';
 
 const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'localhost';
 
@@ -96,8 +97,13 @@ export default function MarketingPage() {
       </header>
 
       {/* Hero */}
-      <section className="max-w-6xl mx-auto px-4 sm:px-6 pt-16 pb-20 sm:pt-24 sm:pb-28 text-center">
-        <div className="inline-flex items-center gap-1.5 px-3 py-1.5 mb-6 bg-white border border-[#DEE2E7] rounded-full text-[11px] font-semibold uppercase tracking-wider text-[#0F3D5C]">
+      <section className="relative max-w-6xl mx-auto px-4 sm:px-6 pt-16 pb-20 sm:pt-24 sm:pb-28 text-center overflow-hidden">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -z-10 -top-24 left-1/2 -translate-x-1/2 w-[600px] h-[600px] rounded-full opacity-40 blur-3xl"
+          style={{ background: 'radial-gradient(circle, #0F3D5C33, transparent 70%)' }}
+        />
+        <div className="inline-flex items-center gap-1.5 px-3 py-1.5 mb-6 bg-white border border-[#DEE2E7] rounded-full text-[11px] font-semibold uppercase tracking-wider text-[#0F3D5C] relative">
           <Star className="w-3.5 h-3.5 fill-[#0F3D5C]" />
           7 dias grátis para testar
         </div>
@@ -127,6 +133,11 @@ export default function MarketingPage() {
         <p className="text-[11px] text-[#68707C] mt-4">
           R$ 97/mês depois do teste grátis. Cancele quando quiser, sem multa.
         </p>
+      </section>
+
+      {/* Demo ao vivo */}
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 pb-20 sm:pb-28">
+        <LiveDemoShowcase />
       </section>
 
       {/* Como funciona */}
@@ -205,7 +216,7 @@ export default function MarketingPage() {
             return (
               <div
                 key={adv.title}
-                className="bg-white border border-[#DEE2E7] p-6 rounded-[2px] hover:border-[#0F3D5C] transition-colors"
+                className="bg-white border border-[#DEE2E7] p-6 rounded-[2px] hover:border-[#0F3D5C] hover:-translate-y-1 hover:shadow-md transition-all duration-200"
               >
                 <div className="inline-flex items-center justify-center w-10 h-10 bg-[#F2F4F6] rounded-full text-[#0F3D5C] mb-4">
                   <Icon className="w-4.5 h-4.5" />
