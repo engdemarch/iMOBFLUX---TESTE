@@ -14,6 +14,7 @@ import {
   Zap
 } from 'lucide-react';
 import { TEMPLATES } from '@/lib/templates';
+import { TemplatePreview } from '@/components/templates/TemplatePreview';
 
 const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'localhost';
 
@@ -172,40 +173,7 @@ export default function MarketingPage() {
           <div className="grid sm:grid-cols-2 gap-6 max-w-3xl mx-auto">
             {TEMPLATES.map((t) => (
               <div key={t.id} className="text-left">
-                {/* Browser chrome mockup */}
-                <div className="border border-[#DEE2E7] rounded-[6px] overflow-hidden shadow-sm bg-white">
-                  <div className="h-8 bg-[#F2F4F6] border-b border-[#DEE2E7] flex items-center gap-1.5 px-3">
-                    <span className="w-2 h-2 rounded-full bg-[#DEE2E7]" />
-                    <span className="w-2 h-2 rounded-full bg-[#DEE2E7]" />
-                    <span className="w-2 h-2 rounded-full bg-[#DEE2E7]" />
-                  </div>
-
-                  {t.id === 'classico' ? (
-                    <div style={{ background: t.primaryDark }} className="aspect-[16/10] flex flex-col justify-end p-4 gap-2">
-                      <div className="w-1/2 h-2 rounded-full bg-white/30" />
-                      <div className="w-3/4 h-3 rounded-full bg-white/70" />
-                      <div className="w-2/3 h-3 rounded-full bg-white/70" />
-                      <div className="flex gap-1.5 mt-2">
-                        <div className="flex-1 h-10 rounded-[2px] bg-white/15" />
-                        <div className="flex-1 h-10 rounded-[2px] bg-white/15" />
-                        <div className="flex-1 h-10 rounded-[2px] bg-white/15" />
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="aspect-[16/10] bg-[#F4F6F8] flex items-center gap-3 p-4">
-                      <div className="flex-1 space-y-2">
-                        <div className="w-4/5 h-2.5 rounded-full" style={{ background: `${t.primary}33` }} />
-                        <div className="w-full h-3.5 rounded-full bg-[#D9DEE3]" />
-                        <div className="w-3/4 h-3.5 rounded-full bg-[#D9DEE3]" />
-                        <div
-                          className="mt-2 w-20 h-6 rounded-full"
-                          style={{ background: t.primary }}
-                        />
-                      </div>
-                      <div className="flex-1 h-full rounded-2xl" style={{ background: `${t.primary}55` }} />
-                    </div>
-                  )}
-                </div>
+                <TemplatePreview template={t} className="shadow-sm" />
 
                 <div className="flex items-center gap-2.5 mt-4">
                   <span

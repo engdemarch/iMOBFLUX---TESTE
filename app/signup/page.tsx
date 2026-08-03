@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import { isSlugFormatValid, isSlugReserved } from '@/lib/host';
 import { TEMPLATES, DEFAULT_TEMPLATE, TemplateId } from '@/lib/templates';
+import { TemplatePreview } from '@/components/templates/TemplatePreview';
 
 // Fase 3: o cadastro não grava mais o tenant direto do navegador — depois de
 // criar a conta no Supabase Auth, o usuário é enviado pro Checkout do Stripe;
@@ -399,26 +400,21 @@ export default function SignupPage() {
                 <label className="block text-xs font-semibold tracking-wider uppercase text-[#68707C] mb-1.5">
                   Template do site
                 </label>
-                <div className="space-y-2">
+                <div className="grid grid-cols-2 gap-2.5">
                   {TEMPLATES.map((t) => (
                     <button
                       key={t.id}
                       type="button"
                       onClick={() => setTemplate(t.id)}
-                      className={`w-full flex items-center gap-3 p-3 border rounded-[2px] text-left transition-colors ${
+                      className={`text-left border rounded-[2px] p-1.5 transition-colors ${
                         template === t.id
                           ? 'border-[#0F3D5C] bg-[#EAF0F6]'
                           : 'border-[#DEE2E7] hover:border-[#0F3D5C]/50'
                       }`}
                     >
-                      <span
-                        className="w-8 h-8 rounded-full shrink-0"
-                        style={{ background: `linear-gradient(135deg, ${t.primary}, ${t.primaryDark})` }}
-                      />
-                      <span className="min-w-0">
-                        <span className="block text-xs font-bold text-[#15263A]">{t.nome}</span>
-                        <span className="block text-[11px] text-[#68707C] leading-snug">{t.descricao}</span>
-                      </span>
+                      <TemplatePreview template={t} />
+                      <div className="text-xs font-bold text-[#15263A] mt-2">{t.nome}</div>
+                      <div className="text-[10px] text-[#68707C] leading-snug">{t.descricao}</div>
                     </button>
                   ))}
                 </div>
