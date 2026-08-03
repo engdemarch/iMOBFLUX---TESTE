@@ -75,8 +75,12 @@ export default function SignupPage() {
   };
 
   useEffect(() => {
-    if (window.location.search.includes('canceled=1')) {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('canceled') === '1') {
       setInfo('Pagamento cancelado. Você pode tentar novamente quando quiser.');
+    }
+    if (params.get('mode') === 'login') {
+      setMode('login');
     }
 
     (async () => {
