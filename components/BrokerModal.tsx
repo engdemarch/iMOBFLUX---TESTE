@@ -87,6 +87,10 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPass, setLoginPass] = useState('');
   const [loginError, setLoginError] = useState('');
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotSent, setForgotSent] = useState(false);
+  const [forgotLoading, setForgotLoading] = useState(false);
 
   // Assinatura (Fase 3)
   const [billingInfo, setBillingInfo] = useState<OwnerBillingInfo | null>(null);
@@ -306,6 +310,20 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
   const handleLogout = async () => {
     await supabase.auth.signOut();
     setOwnerTenantId(null);
+  };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setForgotLoading(true);
+    try {
+      const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'localhost';
+      const port = window.location.port ? `:${window.location.port}` : '';
+      const redirectTo = `${window.location.protocol}//${rootDomain}${port}/reset-password`;
+      await supabase.auth.resetPasswordForEmail(forgotEmail.trim(), { redirectTo });
+      setForgotSent(true);
+    } finally {
+      setForgotLoading(false);
+    }
   };
 
   // Change Password Handler
@@ -970,41 +988,94 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
                     </div>
                   )}
 
-                  <form onSubmit={handleLogin} className="space-y-4">
-                    <div>
-                      <label className="block text-xs font-semibold tracking-wider uppercase text-[#68707C] mb-1.5">
-                        E-mail
-                      </label>
-                      <input
-                        type="email"
-                        value={loginEmail}
-                        onChange={(e) => setLoginEmail(e.target.value)}
-                        placeholder="voce@exemplo.com.br"
-                        required
-                        className="w-full px-3.5 py-2.5 bg-[#F2F4F6] border border-[#DEE2E7] rounded-[2px] text-sm text-[#15263A] focus:outline-none focus:bg-white focus:border-[#0F3D5C]"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-semibold tracking-wider uppercase text-[#68707C] mb-1.5">
-                        Senha
-                      </label>
-                      <input
-                        type="password"
-                        value={loginPass}
-                        onChange={(e) => setLoginPass(e.target.value)}
-                        placeholder="••••••"
-                        required
-                        className="w-full px-3.5 py-2.5 bg-[#F2F4F6] border border-[#DEE2E7] rounded-[2px] text-sm text-[#15263A] focus:outline-none focus:bg-white focus:border-[#0F3D5C]"
-                      />
-                    </div>
+                  {!showForgotPassword ? (
+                    <>
+                      <form onSubmit={handleLogin} className="space-y-4">
+                        <div>
+                          <label className="block text-xs font-semibold tracking-wider uppercase text-[#68707C] mb-1.5">
+                            E-mail
+                          </label>
+                          <input
+                            type="email"
+                            value={loginEmail}
+                            onChange={(e) => setLoginEmail(e.target.value)}
+                            placeholder="voce@exemplo.com.br"
+                            required
+                            className="w-full px-3.5 py-2.5 bg-[#F2F4F6] border border-[#DEE2E7] rounded-[2px] text-sm text-[#15263A] focus:outline-none focus:bg-white focus:border-[#0F3D5C]"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-semibold tracking-wider uppercase text-[#68707C] mb-1.5">
+                            Senha
+                          </label>
+                          <input
+                            type="password"
+                            value={loginPass}
+                            onChange={(e) => setLoginPass(e.target.value)}
+                            placeholder="••••••"
+                            required
+                            className="w-full px-3.5 py-2.5 bg-[#F2F4F6] border border-[#DEE2E7] rounded-[2px] text-sm text-[#15263A] focus:outline-none focus:bg-white focus:border-[#0F3D5C]"
+                          />
+                        </div>
 
-                    <button
-                      type="submit"
-                      className="w-full py-3 bg-[#0F3D5C] hover:bg-[#0B2C44] text-white text-xs font-semibold uppercase tracking-wider rounded-[2px] transition-colors mt-2"
-                    >
-                      Entrar no Painel
-                    </button>
-                  </form>
+                        <button
+                          type="submit"
+                          className="w-full py-3 bg-[#0F3D5C] hover:bg-[#0B2C44] text-white text-xs font-semibold uppercase tracking-wider rounded-[2px] transition-colors mt-2"
+                        >
+                          Entrar no Painel
+                        </button>
+                      </form>
+                      <button
+                        type="button"
+                        onClick={() => { setShowForgotPassword(true); setForgotSent(false); setLoginError(''); }}
+                        className="mt-4 text-xs text-[#0F3D5C] font-semibold hover:underline"
+                      >
+                        Esqueci minha senha
+                      </button>
+                    </>
+                  ) : (
+                    <div className="space-y-4">
+                      {forgotSent ? (
+                        <p className="text-sm text-[#68707C]">
+                          Se esse e-mail estiver cadastrado, enviamos um link pra redefinir a senha. Confira sua
+                          caixa de entrada (e o spam).
+                        </p>
+                      ) : (
+                        <form onSubmit={handleForgotPassword} className="space-y-4">
+                          <p className="text-sm text-[#68707C]">
+                            Digite o e-mail da sua conta pra receber um link de redefinição de senha.
+                          </p>
+                          <div>
+                            <label className="block text-xs font-semibold tracking-wider uppercase text-[#68707C] mb-1.5">
+                              E-mail
+                            </label>
+                            <input
+                              type="email"
+                              value={forgotEmail}
+                              onChange={(e) => setForgotEmail(e.target.value)}
+                              placeholder="voce@exemplo.com.br"
+                              required
+                              className="w-full px-3.5 py-2.5 bg-[#F2F4F6] border border-[#DEE2E7] rounded-[2px] text-sm text-[#15263A] focus:outline-none focus:bg-white focus:border-[#0F3D5C]"
+                            />
+                          </div>
+                          <button
+                            type="submit"
+                            disabled={forgotLoading}
+                            className="w-full py-3 bg-[#0F3D5C] hover:bg-[#0B2C44] disabled:opacity-50 text-white text-xs font-semibold uppercase tracking-wider rounded-[2px] transition-colors"
+                          >
+                            {forgotLoading ? 'Enviando...' : 'Enviar link de recuperação'}
+                          </button>
+                        </form>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => setShowForgotPassword(false)}
+                        className="text-xs text-[#0F3D5C] font-semibold hover:underline"
+                      >
+                        ← Voltar para o login
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             ) : (

@@ -11,11 +11,27 @@ import { isSlugFormatValid, isSlugReserved } from '@/lib/host';
 // email" esteja desativado nas configurações de Auth do Supabase (Authentication
 // > Providers > Email), senão signUp() não retorna sessão ativa e a chamada a
 // /api/checkout abaixo falha por falta de sessão.
+
+type Mode = 'signup' | 'login' | 'forgot';
+
 export default function SignupPage() {
+  const [mode, setMode] = useState<Mode>('signup');
+
+  // Cadastro
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [slug, setSlug] = useState('');
   const [businessName, setBusinessName] = useState('');
+
+  // Login
+  const [loginEmail, setLoginEmail] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
+
+  // Recuperação de senha
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotSent, setForgotSent] = useState(false);
+
   const [error, setError] = useState('');
   const [info, setInfo] = useState('');
   const [loading, setLoading] = useState(false);
@@ -25,8 +41,39 @@ export default function SignupPage() {
   const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'localhost';
   const normalizedSlug = slug.trim().toLowerCase();
 
-  // Retomada de cadastro abandonado: se já existe sessão mas nenhum tenant
-  // associado a ela, o usuário fechou a aba do Stripe no meio do caminho.
+  const redirectToTenant = (tenantSlug: string) => {
+    const port = window.location.port ? `:${window.location.port}` : '';
+    window.location.href = `${window.location.protocol}//${tenantSlug}.${rootDomain}${port}`;
+  };
+
+  // Depois de obter uma sessão (login ou cadastro), decide pra onde mandar o
+  // usuário: já tem site -> redireciona pro subdomínio; pagou mas fechou a
+  // aba do Stripe no meio -> retomada; senão, quem chamou segue o próprio fluxo.
+  // Retorna true se já tratou o redirecionamento/retomada.
+  const routeSession = async (userId: string, userEmail: string | undefined, metadata: Record<string, unknown>) => {
+    const { data: tenant } = await supabase
+      .from('tenants')
+      .select('slug')
+      .eq('owner_user_id', userId)
+      .maybeSingle();
+
+    if (tenant?.slug) {
+      redirectToTenant(tenant.slug);
+      return true;
+    }
+
+    const meta = metadata as { pending_slug?: string; pending_business_name?: string };
+    if (meta?.pending_slug) {
+      setSlug(meta.pending_slug);
+      setBusinessName(meta.pending_business_name || '');
+      setEmail(userEmail || '');
+      setResumeMode(true);
+      return true;
+    }
+
+    return false;
+  };
+
   useEffect(() => {
     if (window.location.search.includes('canceled=1')) {
       setInfo('Pagamento cancelado. Você pode tentar novamente quando quiser.');
@@ -38,26 +85,7 @@ export default function SignupPage() {
         setCheckingSession(false);
         return;
       }
-
-      const { data: tenant } = await supabase
-        .from('tenants')
-        .select('slug')
-        .eq('owner_user_id', session.user.id)
-        .maybeSingle();
-
-      if (tenant?.slug) {
-        const port = window.location.port ? `:${window.location.port}` : '';
-        window.location.href = `${window.location.protocol}//${tenant.slug}.${rootDomain}${port}`;
-        return;
-      }
-
-      const meta = session.user.user_metadata as { pending_slug?: string; pending_business_name?: string };
-      if (meta?.pending_slug) {
-        setSlug(meta.pending_slug);
-        setBusinessName(meta.pending_business_name || '');
-        setEmail(session.user.email || '');
-        setResumeMode(true);
-      }
+      await routeSession(session.user.id, session.user.email, session.user.user_metadata);
       setCheckingSession(false);
     })();
   }, [rootDomain]);
@@ -106,6 +134,10 @@ export default function SignupPage() {
       setError('Esse endereço não está disponível. Escolha outro.');
       return;
     }
+    if (password !== confirmPassword) {
+      setError('As senhas não coincidem.');
+      return;
+    }
 
     setLoading(true);
     try {
@@ -140,7 +172,51 @@ export default function SignupPage() {
     }
   };
 
+  const handleLoginSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+    try {
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
+        email: loginEmail.trim(),
+        password: loginPassword
+      });
+      if (signInError || !data.session) {
+        setError('E-mail ou senha incorretos.');
+        return;
+      }
+      const routed = await routeSession(data.session.user.id, data.session.user.email, data.session.user.user_metadata);
+      if (!routed) {
+        setError('Não encontramos um site associado a esta conta.');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleForgotSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+    try {
+      const port = window.location.port ? `:${window.location.port}` : '';
+      const redirectTo = `${window.location.protocol}//${rootDomain}${port}/reset-password`;
+      await supabase.auth.resetPasswordForEmail(forgotEmail.trim(), { redirectTo });
+      setForgotSent(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (checkingSession) return null;
+
+  const title = resumeMode
+    ? 'Finalizar cadastro'
+    : mode === 'login'
+      ? 'Entrar'
+      : mode === 'forgot'
+        ? 'Recuperar senha'
+        : 'Criar minha conta';
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#F2F4F6] px-4 py-10">
@@ -148,9 +224,7 @@ export default function SignupPage() {
         <div className="text-xs font-semibold tracking-[0.12em] uppercase text-[#0F3D5C] mb-1">
           ImobFlux
         </div>
-        <h1 className="text-2xl font-bold text-[#15263A] mb-6">
-          {resumeMode ? 'Finalizar cadastro' : 'Criar minha conta'}
-        </h1>
+        <h1 className="text-2xl font-bold text-[#15263A] mb-6">{title}</h1>
 
         {info && !error && (
           <div className="p-3 mb-5 text-xs font-medium text-[#0F3D5C] bg-[#F2F4F6] border border-[#DEE2E7] rounded-[2px]">
@@ -181,82 +255,202 @@ export default function SignupPage() {
               </button>
             </form>
           </div>
-        ) : (
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-xs font-semibold tracking-wider uppercase text-[#68707C] mb-1.5">
-                Nome do negócio
-              </label>
-              <input
-                type="text"
-                value={businessName}
-                onChange={(e) => setBusinessName(e.target.value)}
-                placeholder="Ex: João Silva Imóveis"
-                required
-                className="w-full px-3.5 py-2.5 bg-[#F2F4F6] border border-[#DEE2E7] rounded-[2px] text-sm text-[#15263A] focus:outline-none focus:bg-white focus:border-[#0F3D5C]"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold tracking-wider uppercase text-[#68707C] mb-1.5">
-                Endereço do seu site
-              </label>
-              <input
-                type="text"
-                value={slug}
-                onChange={(e) => setSlug(e.target.value)}
-                placeholder="joaosilva"
-                required
-                className="w-full px-3.5 py-2.5 bg-[#F2F4F6] border border-[#DEE2E7] rounded-[2px] text-sm text-[#15263A] focus:outline-none focus:bg-white focus:border-[#0F3D5C]"
-              />
-              {normalizedSlug && (
-                <p className="text-[11px] text-[#68707C] mt-1">
-                  Seu site: <span className="font-medium">{normalizedSlug}.{rootDomain}</span>
+        ) : mode === 'forgot' ? (
+          <div className="space-y-4">
+            {forgotSent ? (
+              <p className="text-sm text-[#68707C]">
+                Se esse e-mail estiver cadastrado, enviamos um link pra redefinir a senha. Confira sua caixa de
+                entrada (e o spam).
+              </p>
+            ) : (
+              <form onSubmit={handleForgotSubmit} className="space-y-4">
+                <p className="text-sm text-[#68707C]">
+                  Digite o e-mail da sua conta pra receber um link de redefinição de senha.
                 </p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold tracking-wider uppercase text-[#68707C] mb-1.5">
-                E-mail
-              </label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="voce@exemplo.com.br"
-                required
-                className="w-full px-3.5 py-2.5 bg-[#F2F4F6] border border-[#DEE2E7] rounded-[2px] text-sm text-[#15263A] focus:outline-none focus:bg-white focus:border-[#0F3D5C]"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold tracking-wider uppercase text-[#68707C] mb-1.5">
-                Senha
-              </label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••"
-                required
-                minLength={6}
-                className="w-full px-3.5 py-2.5 bg-[#F2F4F6] border border-[#DEE2E7] rounded-[2px] text-sm text-[#15263A] focus:outline-none focus:bg-white focus:border-[#0F3D5C]"
-              />
-            </div>
-
-            <p className="text-[11px] text-[#68707C]">
-              7 dias grátis, depois R$ 97/mês. Cartão solicitado no próximo passo, sem cobrança durante o teste.
-            </p>
-
+                <div>
+                  <label className="block text-xs font-semibold tracking-wider uppercase text-[#68707C] mb-1.5">
+                    E-mail
+                  </label>
+                  <input
+                    type="email"
+                    value={forgotEmail}
+                    onChange={(e) => setForgotEmail(e.target.value)}
+                    placeholder="voce@exemplo.com.br"
+                    required
+                    className="w-full px-3.5 py-2.5 bg-[#F2F4F6] border border-[#DEE2E7] rounded-[2px] text-sm text-[#15263A] focus:outline-none focus:bg-white focus:border-[#0F3D5C]"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full py-3 bg-[#0F3D5C] hover:bg-[#0B2C44] disabled:opacity-50 text-white text-xs font-semibold uppercase tracking-wider rounded-[2px] transition-colors"
+                >
+                  {loading ? 'Enviando...' : 'Enviar link de recuperação'}
+                </button>
+              </form>
+            )}
             <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-3 bg-[#0F3D5C] hover:bg-[#0B2C44] disabled:opacity-50 text-white text-xs font-semibold uppercase tracking-wider rounded-[2px] transition-colors mt-2"
+              type="button"
+              onClick={() => { setMode('login'); setForgotSent(false); setError(''); }}
+              className="text-xs text-[#0F3D5C] font-semibold hover:underline"
             >
-              {loading ? 'Redirecionando...' : 'Continuar para o pagamento'}
+              ← Voltar para o login
             </button>
-          </form>
+          </div>
+        ) : mode === 'login' ? (
+          <div className="space-y-4">
+            <form onSubmit={handleLoginSubmit} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold tracking-wider uppercase text-[#68707C] mb-1.5">
+                  E-mail
+                </label>
+                <input
+                  type="email"
+                  value={loginEmail}
+                  onChange={(e) => setLoginEmail(e.target.value)}
+                  placeholder="voce@exemplo.com.br"
+                  required
+                  className="w-full px-3.5 py-2.5 bg-[#F2F4F6] border border-[#DEE2E7] rounded-[2px] text-sm text-[#15263A] focus:outline-none focus:bg-white focus:border-[#0F3D5C]"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold tracking-wider uppercase text-[#68707C] mb-1.5">
+                  Senha
+                </label>
+                <input
+                  type="password"
+                  value={loginPassword}
+                  onChange={(e) => setLoginPassword(e.target.value)}
+                  placeholder="••••••"
+                  required
+                  className="w-full px-3.5 py-2.5 bg-[#F2F4F6] border border-[#DEE2E7] rounded-[2px] text-sm text-[#15263A] focus:outline-none focus:bg-white focus:border-[#0F3D5C]"
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-3 bg-[#0F3D5C] hover:bg-[#0B2C44] disabled:opacity-50 text-white text-xs font-semibold uppercase tracking-wider rounded-[2px] transition-colors mt-2"
+              >
+                {loading ? 'Entrando...' : 'Entrar'}
+              </button>
+            </form>
+            <div className="flex items-center justify-between">
+              <button
+                type="button"
+                onClick={() => { setMode('forgot'); setError(''); }}
+                className="text-xs text-[#0F3D5C] font-semibold hover:underline"
+              >
+                Esqueci minha senha
+              </button>
+              <button
+                type="button"
+                onClick={() => { setMode('signup'); setError(''); }}
+                className="text-xs text-[#68707C] hover:underline"
+              >
+                Criar uma conta
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold tracking-wider uppercase text-[#68707C] mb-1.5">
+                  Nome do negócio
+                </label>
+                <input
+                  type="text"
+                  value={businessName}
+                  onChange={(e) => setBusinessName(e.target.value)}
+                  placeholder="Ex: João Silva Imóveis"
+                  required
+                  className="w-full px-3.5 py-2.5 bg-[#F2F4F6] border border-[#DEE2E7] rounded-[2px] text-sm text-[#15263A] focus:outline-none focus:bg-white focus:border-[#0F3D5C]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold tracking-wider uppercase text-[#68707C] mb-1.5">
+                  Endereço do seu site
+                </label>
+                <input
+                  type="text"
+                  value={slug}
+                  onChange={(e) => setSlug(e.target.value)}
+                  placeholder="joaosilva"
+                  required
+                  className="w-full px-3.5 py-2.5 bg-[#F2F4F6] border border-[#DEE2E7] rounded-[2px] text-sm text-[#15263A] focus:outline-none focus:bg-white focus:border-[#0F3D5C]"
+                />
+                {normalizedSlug && (
+                  <p className="text-[11px] text-[#68707C] mt-1">
+                    Seu site: <span className="font-medium">{normalizedSlug}.{rootDomain}</span>
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold tracking-wider uppercase text-[#68707C] mb-1.5">
+                  E-mail
+                </label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="voce@exemplo.com.br"
+                  required
+                  className="w-full px-3.5 py-2.5 bg-[#F2F4F6] border border-[#DEE2E7] rounded-[2px] text-sm text-[#15263A] focus:outline-none focus:bg-white focus:border-[#0F3D5C]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold tracking-wider uppercase text-[#68707C] mb-1.5">
+                  Senha
+                </label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••"
+                  required
+                  minLength={6}
+                  className="w-full px-3.5 py-2.5 bg-[#F2F4F6] border border-[#DEE2E7] rounded-[2px] text-sm text-[#15263A] focus:outline-none focus:bg-white focus:border-[#0F3D5C]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold tracking-wider uppercase text-[#68707C] mb-1.5">
+                  Confirmar senha
+                </label>
+                <input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="••••••"
+                  required
+                  minLength={6}
+                  className="w-full px-3.5 py-2.5 bg-[#F2F4F6] border border-[#DEE2E7] rounded-[2px] text-sm text-[#15263A] focus:outline-none focus:bg-white focus:border-[#0F3D5C]"
+                />
+              </div>
+
+              <p className="text-[11px] text-[#68707C]">
+                7 dias grátis, depois R$ 97/mês. Cartão solicitado no próximo passo, sem cobrança durante o teste.
+              </p>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-3 bg-[#0F3D5C] hover:bg-[#0B2C44] disabled:opacity-50 text-white text-xs font-semibold uppercase tracking-wider rounded-[2px] transition-colors mt-2"
+              >
+                {loading ? 'Redirecionando...' : 'Continuar para o pagamento'}
+              </button>
+            </form>
+            <button
+              type="button"
+              onClick={() => { setMode('login'); setError(''); }}
+              className="text-xs text-[#68707C] hover:underline"
+            >
+              Já tem uma conta? <span className="text-[#0F3D5C] font-semibold">Entrar</span>
+            </button>
+          </div>
         )}
       </div>
     </div>
