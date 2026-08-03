@@ -253,7 +253,7 @@ export const DEMO_TESTIMONIALS: Testimonial[] = [
     local: 'Criciúma/SC',
     nota: 5,
     texto: 'Comprei meu primeiro apartamento com a ajuda do corretor e fui super bem orientada em cada etapa, da visita até a assinatura do contrato no banco.',
-    origem: 'google',
+    origem: 'direto',
     foto: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80',
     destaque: true
   },
@@ -264,7 +264,7 @@ export const DEMO_TESTIMONIALS: Testimonial[] = [
     local: 'Balneário Rincão/SC',
     nota: 5,
     texto: 'Vendi minha casa em poucas semanas! O anúncio ficou ótimo, com fotos de alta qualidade, e o atendimento nas visitas foi rápido e muito transparente.',
-    origem: 'google',
+    origem: 'direto',
     foto: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80',
     destaque: true
   },
@@ -286,7 +286,7 @@ export const DEMO_TESTIMONIALS: Testimonial[] = [
     local: 'Criciúma/SC',
     nota: 5,
     texto: 'Excelente profissional! Me ajudou a encontrar uma área comercial perfeita para a expansão do meu negócio. Atendimento muito ágil e ético.',
-    origem: 'google',
+    origem: 'direto',
     foto: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=150&q=80',
     destaque: true
   },
@@ -297,7 +297,7 @@ export const DEMO_TESTIMONIALS: Testimonial[] = [
     local: 'Içara/SC',
     nota: 5,
     texto: 'Atendimento impecável! Respondeu a todas as dúvidas com paciência e conhecimento do mercado imobiliário da região.',
-    origem: 'google',
+    origem: 'direto',
     foto: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=150&q=80',
     destaque: true
   },

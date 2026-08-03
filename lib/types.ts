@@ -75,7 +75,7 @@ export interface Testimonial {
   local?: string;
   nota: number; // 1 to 5
   texto: string;
-  origem?: 'google' | 'direto';
+  origem?: 'direto';
   foto?: string;
   destaque?: boolean;
 }

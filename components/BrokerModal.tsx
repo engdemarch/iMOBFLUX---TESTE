@@ -233,7 +233,6 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
   const [testCidade, setTestCidade] = useState('');
   const [testNota, setTestNota] = useState(5);
   const [testTexto, setTestTexto] = useState('');
-  const [testOrigem, setTestOrigem] = useState<'google' | 'direto'>('google');
   const [testFoto, setTestFoto] = useState('');
   const [testCropSrc, setTestCropSrc] = useState<string | null>(null);
   const [testDestaque, setTestDestaque] = useState(true);
@@ -763,7 +762,6 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
     setTestCidade('');
     setTestNota(5);
     setTestTexto('');
-    setTestOrigem('google');
     setTestFoto('');
     setTestDestaque(true);
     setTestMsg(null);
@@ -785,7 +783,6 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
 
     setTestNota(t.nota || 5);
     setTestTexto(t.texto);
-    setTestOrigem(t.origem || 'direto');
     setTestFoto(t.foto || '');
     setTestDestaque(t.destaque !== false);
     setTestMsg(null);
@@ -812,7 +809,7 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
       local,
       nota: Number(testNota) || 5,
       texto: testTexto.trim(),
-      origem: testOrigem,
+      origem: 'direto',
       foto: testFoto.trim(),
       destaque: testDestaque
     };
@@ -827,48 +824,6 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
     onUpdateTestimonials(updatedList);
     setTestMsg({ type: 'success', text: '✓ Alterações salvas com sucesso! Depoimento gravado.' });
     setTimeout(() => resetTestForm(), 1500);
-  };
-
-  const handleImportGoogleReviews = () => {
-    const sampleReviews: Testimonial[] = [
-      {
-        id: `g_rev_1_${Date.now()}`,
-        createdAt: Date.now() - 1000,
-        nome: 'Mariana Silveira',
-        local: 'Criciúma/SC',
-        nota: 5,
-        texto: 'Excelente atendimento! Profissional muito atencioso, explicou todo o processo de financiamento e nos ajudou a conquistar a casa própria.',
-        origem: 'google',
-        foto: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=150&q=80',
-        destaque: true
-      },
-      {
-        id: `g_rev_2_${Date.now()}`,
-        createdAt: Date.now() - 2000,
-        nome: 'Lucas Mendonça',
-        local: 'Balneário Rincão/SC',
-        nota: 5,
-        texto: 'A venda do meu imóvel foi super rápida. Anúncio profissional, fotos incríveis e total suporte na documentação cartorária.',
-        origem: 'google',
-        foto: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=150&q=80',
-        destaque: true
-      },
-      {
-        id: `g_rev_3_${Date.now()}`,
-        createdAt: Date.now() - 3000,
-        nome: 'Fernanda Oliveira',
-        local: 'Içara/SC',
-        nota: 5,
-        texto: 'Corretor altamente qualificado e ético. Encontrou um apartamento exatamente com o perfil que nossa família buscava.',
-        origem: 'google',
-        foto: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80',
-        destaque: true
-      }
-    ];
-
-    const merged = [...sampleReviews, ...testimonials];
-    onUpdateTestimonials(merged);
-    setTestMsg({ type: 'success', text: 'Avaliações do Google importadas com sucesso!' });
   };
 
   // Corretores (Team Roster) Handlers
@@ -2621,19 +2576,10 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
                 {/* TAB 4: TESTIMONIALS */}
                 {activeTab === 'testemunhos' && (
                   <div>
-                    {/* Header banner with preset import button */}
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-5 p-4 bg-[#EAF0F6] border border-[#DEE2E7] rounded-[2px]">
-                      <div>
-                        <h4 className="text-sm font-bold text-[#15263A]">Depoimentos & Avaliações do Google</h4>
-                        <p className="text-xs text-[#68707C]">Gerencie as opiniões dos seus clientes exibidas em carrossel (3 por vez) no site.</p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={handleImportGoogleReviews}
-                        className="px-3.5 py-2 bg-white border border-[#0F3D5C] text-[#0F3D5C] hover:bg-[#0F3D5C] hover:text-white text-xs font-bold uppercase tracking-wider rounded-[2px] transition-colors shrink-0 flex items-center gap-1.5 shadow-xs"
-                      >
-                        <span>✨ Gerar Avaliações Exemplo do Google</span>
-                      </button>
+                    {/* Header banner */}
+                    <div className="mb-5 p-4 bg-[#EAF0F6] border border-[#DEE2E7] rounded-[2px]">
+                      <h4 className="text-sm font-bold text-[#15263A]">Depoimentos</h4>
+                      <p className="text-xs text-[#68707C]">Gerencie as opiniões dos seus clientes exibidas em carrossel (3 por vez) no site.</p>
                     </div>
 
                     {/* Add/Edit Form */}
@@ -2702,21 +2648,7 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                          <div>
-                            <label className="block text-xs font-semibold uppercase text-[#68707C] mb-1">
-                              Origem do Depoimento
-                            </label>
-                            <select
-                              value={testOrigem}
-                              onChange={(e) => setTestOrigem(e.target.value as 'google' | 'direto')}
-                              className="w-full px-3 py-2 bg-white border border-[#DEE2E7] rounded-[2px] text-sm focus:outline-none focus:border-[#0F3D5C]"
-                            >
-                              <option value="google">Avaliação do Google (Google Review)</option>
-                              <option value="direto">Depoimento Direto</option>
-                            </select>
-                          </div>
-
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           <div>
                             <label className="block text-xs font-semibold uppercase text-[#68707C] mb-1">
                               Nota
@@ -2870,15 +2802,6 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
                                   <span>{t.nome}</span>
                                   {t.local && <span className="text-xs text-[#68707C] font-normal">· {t.local}</span>}
                                   <span className="text-[#F59E0B] text-xs">{'★'.repeat(t.nota)}</span>
-                                  {t.origem === 'google' ? (
-                                    <span className="bg-[#EA4335] text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase">
-                                      Google Review
-                                    </span>
-                                  ) : (
-                                    <span className="bg-[#E2E6EA] text-[#68707C] text-[9px] font-bold px-1.5 py-0.5 rounded-[2px] uppercase">
-                                      Direto
-                                    </span>
-                                  )}
                                 </div>
                                 <p className="text-xs text-[#68707C] mt-1 italic">“{t.texto}”</p>
                               </div>
