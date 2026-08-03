@@ -3,7 +3,7 @@
 import React from 'react';
 import { Property } from '@/lib/types';
 import { formatPrice, formatRefCode } from '@/lib/storage';
-import { Calendar, Tag } from 'lucide-react';
+import { Tag } from 'lucide-react';
 
 interface PropertyCardProps {
   property: Property;
@@ -16,7 +16,6 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property, onSelect }
     : 'https://picsum.photos/seed/placeholder/800/600';
 
   const hasTags = property.tags && property.tags.length > 0;
-  const hasDeliveryDate = !!property.previsaoEntrega;
 
   return (
     <div
@@ -42,18 +41,23 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property, onSelect }
           {property.transacao}
         </div>
 
-        {/* Highlight Badge if Destaque */}
-        {property.destaque && (
-          <div className="absolute bottom-3.5 left-3.5 bg-[#A8452F] text-white text-[10px] px-2 py-0.5 tracking-wider uppercase font-bold rounded-[1px]">
-            Destaque
-          </div>
-        )}
-
-        {/* Previsão de Entrega Badge on Image if Na Planta / Lançamento */}
-        {hasDeliveryDate && (
-          <div className="absolute bottom-3.5 right-3.5 bg-[#122234]/90 backdrop-blur-xs text-[#25D366] text-[10px] px-2 py-0.5 tracking-wider font-semibold rounded-[1px] flex items-center gap-1 border border-[#25D366]/30">
-            <Calendar className="w-3 h-3 shrink-0 text-[#25D366]" />
-            <span>Entrega: {property.previsaoEntrega}</span>
+        {/* Highlight Badge + Tags on Cover Image */}
+        {(property.destaque || hasTags) && (
+          <div className="absolute bottom-3.5 left-3.5 right-3.5 flex flex-wrap gap-1.5">
+            {property.destaque && (
+              <span className="bg-[#A8452F] text-white text-[10px] px-2 py-0.5 tracking-wider uppercase font-bold rounded-[1px]">
+                Destaque
+              </span>
+            )}
+            {hasTags && property.tags!.map((tag, idx) => (
+              <span
+                key={idx}
+                className="inline-flex items-center gap-1 bg-[#122234]/85 backdrop-blur-xs text-white text-[10px] px-2 py-0.5 tracking-wider uppercase font-semibold rounded-[1px] border border-white/10"
+              >
+                <Tag className="w-2.5 h-2.5 opacity-80" />
+                {tag}
+              </span>
+            ))}
           </div>
         )}
       </div>
@@ -70,21 +74,6 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property, onSelect }
           <h3 className="text-sm sm:text-[14.5px] mt-2 text-[#15263A] leading-snug line-clamp-2 min-h-[38px] font-medium group-hover:text-[#0F3D5C] transition-colors">
             {property.titulo}
           </h3>
-
-          {/* Badges / Tags List */}
-          {hasTags && (
-            <div className="flex flex-wrap gap-1.5 mt-3">
-              {property.tags!.map((tag, idx) => (
-                <span
-                  key={idx}
-                  className="inline-flex items-center gap-1 text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 bg-[#EAF0F6] text-[#0F3D5C] border border-[#CBD5E1] rounded-[2px]"
-                >
-                  <Tag className="w-2.5 h-2.5 opacity-70" />
-                  {tag}
-                </span>
-              ))}
-            </div>
-          )}
         </div>
       </div>
 

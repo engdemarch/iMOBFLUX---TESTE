@@ -1,22 +1,20 @@
 'use client';
 
-import React, { useState, useSyncExternalStore } from 'react';
-import { Property, FilterState } from '@/lib/types';
+import React, { useEffect, useState, useCallback } from 'react';
+import { Property, SiteConfig, Testimonial, Corretor, FilterState } from '@/lib/types';
+import { DEFAULT_CONFIG, DEMO_PROPERTIES, DEMO_TESTIMONIALS, DEMO_CORRETORES } from '@/lib/storage';
 import {
-  DEFAULT_CONFIG,
-  DEMO_PROPERTIES,
-  DEMO_TESTIMONIALS,
-  DEMO_CORRETORES,
-  getStoredConfigSnapshot,
-  getStoredPropertiesSnapshot,
-  getStoredTestimonialsSnapshot,
-  getStoredCorretoresSnapshot,
-  saveStoredConfig,
-  saveStoredProperties,
-  saveStoredTestimonials,
-  saveStoredCorretores,
-  subscribeStorage
-} from '@/lib/storage';
+  resolveTenantId,
+  getConfig,
+  getProperties,
+  getTestimonials,
+  getCorretores,
+  saveConfig,
+  saveProperties,
+  saveTestimonials,
+  saveCorretores
+} from '@/lib/db';
+import { supabase } from '@/lib/supabase/client';
 
 import { Header } from '@/components/Header';
 import { Hero } from '@/components/Hero';
@@ -32,16 +30,12 @@ import { PropertyDetailModal } from '@/components/PropertyDetailModal';
 import { BrokerFab } from '@/components/BrokerFab';
 import { BrokerModal } from '@/components/BrokerModal';
 
-const getServerConfig = () => DEFAULT_CONFIG;
-const getServerProperties = () => DEMO_PROPERTIES;
-const getServerTestimonials = () => DEMO_TESTIMONIALS;
-const getServerCorretores = () => DEMO_CORRETORES;
-
 export default function Home() {
-  const config = useSyncExternalStore(subscribeStorage, getStoredConfigSnapshot, getServerConfig);
-  const properties = useSyncExternalStore(subscribeStorage, getStoredPropertiesSnapshot, getServerProperties);
-  const testimonials = useSyncExternalStore(subscribeStorage, getStoredTestimonialsSnapshot, getServerTestimonials);
-  const corretores = useSyncExternalStore(subscribeStorage, getStoredCorretoresSnapshot, getServerCorretores);
+  const [tenantId, setTenantId] = useState<string | null>(null);
+  const [config, setConfig] = useState<SiteConfig>(DEFAULT_CONFIG);
+  const [properties, setProperties] = useState<Property[]>(DEMO_PROPERTIES);
+  const [testimonials, setTestimonials] = useState<Testimonial[]>(DEMO_TESTIMONIALS);
+  const [corretores, setCorretores] = useState<Corretor[]>(DEMO_CORRETORES);
 
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
   const [brokerModalOpen, setBrokerModalOpen] = useState(false);
@@ -52,6 +46,30 @@ export default function Home() {
     cidade: '',
     quartos: ''
   });
+
+  const loadTenantData = useCallback(async () => {
+    const id = await resolveTenantId();
+    setTenantId(id);
+    if (!id) return;
+    const [cfg, props, tests, corrs] = await Promise.all([
+      getConfig(id),
+      getProperties(id),
+      getTestimonials(id),
+      getCorretores(id)
+    ]);
+    setConfig(cfg);
+    setProperties(props);
+    setTestimonials(tests);
+    setCorretores(corrs);
+  }, []);
+
+  useEffect(() => {
+    loadTenantData();
+    const { data: subscription } = supabase.auth.onAuthStateChange(() => {
+      loadTenantData();
+    });
+    return () => subscription.subscription.unsubscribe();
+  }, [loadTenantData]);
 
   // Aggregate cities for search filter
   const availableCities = Array.from(
@@ -126,18 +144,33 @@ export default function Home() {
       <BrokerFab config={config} onClick={() => setBrokerModalOpen(true)} />
 
       {/* Broker Admin Modal */}
-      <BrokerModal
-        isOpen={brokerModalOpen}
-        onClose={() => setBrokerModalOpen(false)}
-        config={config}
-        properties={properties}
-        testimonials={testimonials}
-        corretores={corretores}
-        onUpdateConfig={(newConfig) => saveStoredConfig(newConfig)}
-        onUpdateProperties={(newProperties) => saveStoredProperties(newProperties)}
-        onUpdateTestimonials={(newTestimonials) => saveStoredTestimonials(newTestimonials)}
-        onUpdateCorretores={(newCorretores) => saveStoredCorretores(newCorretores)}
-      />
+      {tenantId && (
+        <BrokerModal
+          isOpen={brokerModalOpen}
+          onClose={() => setBrokerModalOpen(false)}
+          config={config}
+          properties={properties}
+          testimonials={testimonials}
+          corretores={corretores}
+          tenantId={tenantId}
+          onUpdateConfig={(newConfig) => {
+            setConfig(newConfig);
+            saveConfig(tenantId, newConfig);
+          }}
+          onUpdateProperties={(newProperties) => {
+            setProperties(newProperties);
+            saveProperties(tenantId, newProperties);
+          }}
+          onUpdateTestimonials={(newTestimonials) => {
+            setTestimonials(newTestimonials);
+            saveTestimonials(tenantId, newTestimonials);
+          }}
+          onUpdateCorretores={(newCorretores) => {
+            setCorretores(newCorretores);
+            saveCorretores(tenantId, newCorretores);
+          }}
+        />
+      )}
     </div>
   );
 }

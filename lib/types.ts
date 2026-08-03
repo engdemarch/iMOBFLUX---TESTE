@@ -20,6 +20,7 @@ export interface Property {
   cidade: string;
   estado: string;
   endereco?: string;
+  cep?: string;
   preco: number;
   quartos: number;
   banheiros: number;

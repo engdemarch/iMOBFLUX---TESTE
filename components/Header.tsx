@@ -15,7 +15,7 @@ export const Header: React.FC<HeaderProps> = ({ config }) => {
   // Split name for visual dot effect: e.g. "Alef Hansen" -> "Alef·Hansen"
   const nameParts = (config.nome || 'Alef Hansen').trim().split(' ');
   const firstName = nameParts[0] || 'Alef';
-  const lastName = nameParts.slice(1).join(' ') || 'Hansen';
+  const lastName = nameParts.slice(1).join(' ');
 
   const waMessage = encodeURIComponent('Olá! Vim pelo site e gostaria de mais informações.');
   const waUrl = `https://wa.me/${config.whats || '5548999990000'}?text=${waMessage}`;
@@ -35,7 +35,7 @@ export const Header: React.FC<HeaderProps> = ({ config }) => {
           {(!config.logo || config.mostrarNome) && (
             <div className="flex flex-col leading-tight">
               <span className="font-brand text-base sm:text-lg font-extrabold tracking-tight text-[#15263A]">
-                {firstName}<span className="text-[#0F3D5C] mx-[1px]">·</span>{lastName}
+                {firstName}{lastName && <><span className="text-[#0F3D5C] mx-[1px]">·</span>{lastName}</>}
               </span>
               <span className="text-[10px] font-medium tracking-[0.1em] uppercase text-[#68707C] mt-0.5">
                 {config.subtitulo || 'Corretor de Imóveis'}

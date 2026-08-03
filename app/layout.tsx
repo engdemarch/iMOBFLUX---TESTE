@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Alef Hansen — Corretor de Imóveis',
+  title: 'ImobFlux',
   description: 'Catálogo de imóveis em Criciúma e região · SC. Casas, apartamentos, terrenos e salas comerciais.',
 };
 

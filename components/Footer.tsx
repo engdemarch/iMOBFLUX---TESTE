@@ -14,10 +14,10 @@ export const Footer: React.FC<FooterProps> = ({ config, onOpenBrokerModal }) => 
 
   const nameParts = (config.nome || 'Alef Hansen').trim().split(' ');
   const firstName = nameParts[0] || 'Alef';
-  const lastName = nameParts.slice(1).join(' ') || 'Hansen';
+  const lastName = nameParts.slice(1).join(' ');
 
   return (
-    <footer className="bg-[#15263A] text-[#C9C6BB] pt-16 pb-8" id="contato">
+    <footer className="bg-[#15263A] text-[#C9C6BB] pt-16 pb-24" id="contato">
       <div className="max-w-[1180px] mx-auto px-5 sm:px-8">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 pb-12 border-b border-[#34332C]">
           {/* Brand Info */}
@@ -33,7 +33,7 @@ export const Footer: React.FC<FooterProps> = ({ config, onOpenBrokerModal }) => 
               {(!config.logo || config.mostrarNome) && (
                 <div className="flex flex-col leading-tight">
                   <span className="font-brand text-base sm:text-lg font-extrabold tracking-tight text-[#F4F1EA]">
-                    {firstName}<span className="text-[#0F3D5C] mx-[1px]">·</span>{lastName}
+                    {firstName}{lastName && <><span className="text-[#0F3D5C] mx-[1px]">·</span>{lastName}</>}
                   </span>
                   <span className="text-[10px] font-medium tracking-[0.1em] uppercase text-[#8B8E86]">
                     {config.subtitulo || 'Corretor de Imóveis'}
@@ -112,7 +112,7 @@ export const Footer: React.FC<FooterProps> = ({ config, onOpenBrokerModal }) => 
             className="inline-flex items-center gap-1.5 text-xs text-[#8B8E86] hover:text-[#C9C6BB] transition-colors underline underline-offset-4 cursor-pointer"
           >
             <Lock className="w-3 h-3" />
-            <span>Área do Corretor</span>
+            <span>ImobFlux</span>
           </button>
         </div>
       </div>

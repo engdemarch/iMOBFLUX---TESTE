@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { X, ChevronLeft, ChevronRight, MessageCircle, Calendar, Tag, CheckCircle2 } from 'lucide-react';
 import { Property, SiteConfig } from '@/lib/types';
 import { formatPrice, formatRefCode } from '@/lib/storage';
+import { MapPin } from 'lucide-react';
 
 interface PropertyDetailModalProps {
   property: Property | null;
@@ -185,6 +186,30 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
           <div className="mt-6 text-[#68707C] text-sm sm:text-base leading-relaxed whitespace-pre-line border-t border-[#DEE2E7] pt-6">
             {property.descricao || 'Sem descrição adicional para este imóvel.'}
           </div>
+
+          {/* Location Map (approximate, by neighborhood — exact street address is kept private) */}
+          {(property.bairro || property.cidade) && (
+            <div className="mt-6 border-t border-[#DEE2E7] pt-6">
+              <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-[#0F3D5C] mb-3">
+                <MapPin className="w-3.5 h-3.5" />
+                <span>Localização aproximada</span>
+              </div>
+              <div className="bg-[#E8ECEF] border border-[#DEE2E7] rounded-[2px] overflow-hidden h-[260px] sm:h-[320px]">
+                <iframe
+                  title={`Mapa - ${property.bairro}, ${property.cidade}`}
+                  src={`https://maps.google.com/maps?q=${encodeURIComponent(
+                    [property.bairro, property.cidade, property.estado, 'Brasil'].filter(Boolean).join(', ')
+                  )}&t=&z=14&ie=UTF8&iwloc=&output=embed`}
+                  className="w-full h-full border-0"
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                />
+              </div>
+              <p className="text-[11px] text-[#68707C] mt-2">
+                O endereço exato é informado pelo corretor após o contato, para preservar a privacidade do imóvel.
+              </p>
+            </div>
+          )}
 
           {/* Corretor Agenciador Box */}
           {property.corretorNome && (

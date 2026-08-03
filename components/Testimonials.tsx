@@ -9,25 +9,14 @@ interface TestimonialsProps {
 }
 
 export const Testimonials: React.FC<TestimonialsProps> = ({ testimonials }) => {
-  const [filterSource, setFilterSource] = useState<'all' | 'google' | 'direto'>('all');
   const [currentPage, setCurrentPage] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
 
-  // Filter testimonials based on selected tab or active status
-  const filteredList = testimonials.filter((t) => {
-    if (filterSource === 'google') return t.origem === 'google';
-    if (filterSource === 'direto') return t.origem === 'direto' || !t.origem;
-    return true;
-  });
+  const filteredList = testimonials;
 
   // Calculate items per page (3 cards per slide)
   const itemsPerPage = 3;
   const totalPages = Math.ceil(filteredList.length / itemsPerPage) || 1;
-
-  const handleFilterChange = (source: 'all' | 'google' | 'direto') => {
-    setFilterSource(source);
-    setCurrentPage(0);
-  };
 
   // Auto-advance slider every 6 seconds
   useEffect(() => {
@@ -79,12 +68,6 @@ export const Testimonials: React.FC<TestimonialsProps> = ({ testimonials }) => {
           <div>
             <div className="text-xs font-semibold tracking-[0.12em] uppercase text-[#0F3D5C] mb-2 flex items-center gap-2">
               <span>Depoimentos & Avaliações</span>
-              <span className="inline-flex items-center gap-1 bg-[#EA4335] text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
-                <svg className="w-3 h-3 fill-current" viewBox="0 0 24 24">
-                  <path d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z" />
-                </svg>
-                Google Reviews
-              </span>
             </div>
             <h2 className="text-3xl sm:text-4xl font-bold text-[#15263A] tracking-tight">
               O que dizem nossos clientes
@@ -94,43 +77,8 @@ export const Testimonials: React.FC<TestimonialsProps> = ({ testimonials }) => {
             </p>
           </div>
 
-          {/* Filter Tabs & Navigation */}
+          {/* Navigation */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 shrink-0">
-            {/* Filter Buttons */}
-            <div className="inline-flex bg-[#E2E6EA] p-1 rounded-[2px] border border-[#DEE2E7] text-xs font-medium">
-              <button
-                onClick={() => handleFilterChange('all')}
-                className={`px-3 py-1.5 rounded-[2px] transition-all ${
-                  filterSource === 'all'
-                    ? 'bg-white text-[#15263A] font-bold shadow-xs'
-                    : 'text-[#68707C] hover:text-[#15263A]'
-                }`}
-              >
-                Todos ({testimonials.length})
-              </button>
-              <button
-                onClick={() => handleFilterChange('google')}
-                className={`px-3 py-1.5 rounded-[2px] flex items-center gap-1.5 transition-all ${
-                  filterSource === 'google'
-                    ? 'bg-white text-[#15263A] font-bold shadow-xs'
-                    : 'text-[#68707C] hover:text-[#15263A]'
-                }`}
-              >
-                <span className="w-2 h-2 rounded-full bg-[#EA4335]"></span>
-                Google ({testimonials.filter((t) => t.origem === 'google').length})
-              </button>
-              <button
-                onClick={() => handleFilterChange('direto')}
-                className={`px-3 py-1.5 rounded-[2px] transition-all ${
-                  filterSource === 'direto'
-                    ? 'bg-white text-[#15263A] font-bold shadow-xs'
-                    : 'text-[#68707C] hover:text-[#15263A]'
-                }`}
-              >
-                Diretos ({testimonials.filter((t) => t.origem === 'direto' || !t.origem).length})
-              </button>
-            </div>
-
             {/* Pagination Controls */}
             {totalPages > 1 && (
               <div className="flex items-center gap-2">
@@ -168,35 +116,7 @@ export const Testimonials: React.FC<TestimonialsProps> = ({ testimonials }) => {
                 key={t.id}
                 className="bg-white border border-[#DEE2E7] p-7 flex flex-col justify-between rounded-[2px] shadow-xs hover:shadow-md transition-all relative group"
               >
-                {/* Source Badge on top right */}
-                {t.origem === 'google' ? (
-                  <div className="absolute top-6 right-6 inline-flex items-center gap-1.5 bg-[#F8F9FA] border border-[#E5E7EB] px-2.5 py-1 rounded-full text-[11px] font-semibold text-[#3C4043] shadow-xs">
-                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24">
-                      <path
-                        fill="#4285F4"
-                        d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"
-                      />
-                      <path
-                        fill="#34A853"
-                        d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.11-6.72-4.96H1.29v3.15C3.26 21.3 7.31 24 12 24z"
-                      />
-                      <path
-                        fill="#FBBC05"
-                        d="M5.28 14.24c-.25-.75-.38-1.55-.38-2.36s.13-1.61.38-2.36V6.37H1.29C.47 8.01 0 9.94 0 12s.47 3.99 1.29 5.63l3.99-3.39z"
-                      />
-                      <path
-                        fill="#EA4335"
-                        d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.29 6.37l3.99 3.39c.95-2.85 3.6-4.96 6.72-4.96z"
-                      />
-                    </svg>
-                    <span>Google Review</span>
-                  </div>
-                ) : (
-                  <div className="absolute top-6 right-6 inline-flex items-center gap-1 text-[#68707C] text-[11px] font-medium">
-                    <Quote className="w-3.5 h-3.5 opacity-40 text-[#0F3D5C]" />
-                    <span>Depoimento</span>
-                  </div>
-                )}
+                <Quote className="absolute top-6 right-6 w-5 h-5 opacity-20 text-[#0F3D5C]" />
 
                 <div>
                   {/* Rating Stars */}

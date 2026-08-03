@@ -25,25 +25,29 @@ import {
   Building2,
   UserCheck,
   Tag,
-  Calendar
+  Calendar,
+  Users
 } from 'lucide-react';
 import { Property, SiteConfig, Testimonial, Corretor } from '@/lib/types';
-import {
-  sha256,
-  formatPrice,
-  formatRefCode,
-  resizeImageToDataUrl,
-  saveStoredProperties,
-  saveStoredConfig,
-  saveStoredTestimonials,
-  saveStoredCorretores,
-  deleteStoredProperty,
-  deleteStoredTestimonial,
-  deleteStoredCorretor,
-  getStoredCredentials,
-  saveStoredCredentials
-} from '@/lib/storage';
+import { formatPrice, formatRefCode, MAX_PHOTO_SIZE_MB } from '@/lib/storage';
+import { supabase } from '@/lib/supabase/client';
+import { resizeAndUploadImage, uploadDataUrl } from '@/lib/supabase/storage';
+import { resolveOwnerTenantId } from '@/lib/db';
+import { ESTADOS_BR, fetchEnderecoPorCep, formatCep } from '@/lib/brasil';
 import { LogoCropModal } from './LogoCropModal';
+import { CidadeSelect } from './CidadeSelect';
+
+const MESES_PT = [
+  'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+  'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+];
+
+// Converte um valor de <input type="month"> ("AAAA-MM") em texto legível ("Dezembro de 2026")
+function formatMesAno(yyyyMm: string): string {
+  const [y, m] = yyyyMm.split('-').map(Number);
+  if (!y || !m || m < 1 || m > 12) return '';
+  return `${MESES_PT[m - 1]} de ${y}`;
+}
 
 interface BrokerModalProps {
   isOpen: boolean;
@@ -52,6 +56,7 @@ interface BrokerModalProps {
   properties: Property[];
   testimonials: Testimonial[];
   corretores?: Corretor[];
+  tenantId: string;
   onUpdateConfig: (newConfig: SiteConfig) => void;
   onUpdateProperties: (newProperties: Property[]) => void;
   onUpdateTestimonials: (newTestimonials: Testimonial[]) => void;
@@ -65,23 +70,36 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
   properties,
   testimonials,
   corretores = [],
+  tenantId,
   onUpdateConfig,
   onUpdateProperties,
   onUpdateTestimonials,
   onUpdateCorretores
 }) => {
   // Session State
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
-  const [loginUser, setLoginUser] = useState('');
+  // ownerTenantId é o tenant que a conta logada POSSUI; isLoggedIn só é
+  // verdadeiro quando bate com o tenantId sendo VISITADO (este site). Sem essa
+  // checagem, logar com as credenciais certas no subdomínio errado desbloquearia
+  // o painel de edição vinculado ao site de outro corretor.
+  const [ownerTenantId, setOwnerTenantId] = useState<string | null>(null);
+  const isLoggedIn = ownerTenantId !== null && ownerTenantId === tenantId;
+  const [loginEmail, setLoginEmail] = useState('');
   const [loginPass, setLoginPass] = useState('');
   const [loginError, setLoginError] = useState('');
 
+  useEffect(() => {
+    resolveOwnerTenantId().then(setOwnerTenantId);
+    const { data: subscription } = supabase.auth.onAuthStateChange(() => {
+      resolveOwnerTenantId().then(setOwnerTenantId);
+    });
+    return () => subscription.subscription.unsubscribe();
+  }, []);
+
   // Active Tab
-  const [activeTab, setActiveTab] = useState<'imoveis' | 'form' | 'config' | 'testemunhos' | 'seguranca'>('imoveis');
-  const [formSection, setFormSection] = useState<'imovel' | 'proprietario'>('imovel');
+  const [activeTab, setActiveTab] = useState<'imoveis' | 'form' | 'config' | 'testemunhos' | 'corretores' | 'seguranca'>('imoveis');
+  const [formSection, setFormSection] = useState<'imovel' | 'proprietario' | 'corretor'>('imovel');
 
   // Security / Credentials State
-  const [credNewUser, setCredNewUser] = useState<string>(() => getStoredCredentials().user);
   const [credCurrentPass, setCredCurrentPass] = useState('');
   const [credNewPass, setCredNewPass] = useState('');
   const [credConfirmPass, setCredConfirmPass] = useState('');
@@ -92,6 +110,9 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
   const [propTitulo, setPropTitulo] = useState('');
   const [propTransacao, setPropTransacao] = useState<'Venda' | 'Aluguel'>('Venda');
   const [propTipo, setPropTipo] = useState('Casa');
+  const [propCep, setPropCep] = useState('');
+  const [propCepLoading, setPropCepLoading] = useState(false);
+  const [propCepError, setPropCepError] = useState('');
   const [propBairro, setPropBairro] = useState('');
   const [propCidade, setPropCidade] = useState('');
   const [propEstado, setPropEstado] = useState('SC');
@@ -105,13 +126,25 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
   const [propDestaque, setPropDestaque] = useState(false);
   const [propTags, setPropTags] = useState<string[]>([]);
   const [propPrevisaoEntrega, setPropPrevisaoEntrega] = useState('');
+  const [propPrevisaoMes, setPropPrevisaoMes] = useState('');
   const [propCustomTagInput, setPropCustomTagInput] = useState('');
   const [propFotos, setPropFotos] = useState<string[]>([]);
+  const [propPhotoCropSrc, setPropPhotoCropSrc] = useState<string | null>(null);
+  const [propPhotoCropIndex, setPropPhotoCropIndex] = useState<number | null>(null);
 
   // Private owner fields
   const [propProprietarioNome, setPropProprietarioNome] = useState('');
   const [propProprietarioTelefone, setPropProprietarioTelefone] = useState('');
   const [propProprietarioObs, setPropProprietarioObs] = useState('');
+
+  // Corretor Responsável (per-property override) fields
+  const [propCorretorModo, setPropCorretorModo] = useState('');
+  const [propCorretorNome, setPropCorretorNome] = useState('');
+  const [propCorretorCreci, setPropCorretorCreci] = useState('');
+  const [propCorretorWhats, setPropCorretorWhats] = useState('');
+  const [propCorretorCargo, setPropCorretorCargo] = useState('');
+  const [propCorretorFoto, setPropCorretorFoto] = useState('');
+  const [propCorretorCropSrc, setPropCorretorCropSrc] = useState<string | null>(null);
 
   const [propMsg, setPropMsg] = useState<{ type: 'error' | 'success'; text: string } | null>(null);
 
@@ -160,7 +193,8 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
   // Testimonials Form State
   const [editingTestId, setEditingTestId] = useState<string | null>(null);
   const [testNome, setTestNome] = useState('');
-  const [testLocal, setTestLocal] = useState('');
+  const [testEstado, setTestEstado] = useState('');
+  const [testCidade, setTestCidade] = useState('');
   const [testNota, setTestNota] = useState(5);
   const [testTexto, setTestTexto] = useState('');
   const [testOrigem, setTestOrigem] = useState<'google' | 'direto'>('google');
@@ -168,6 +202,19 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
   const [testCropSrc, setTestCropSrc] = useState<string | null>(null);
   const [testDestaque, setTestDestaque] = useState(true);
   const [testMsg, setTestMsg] = useState<{ type: 'error' | 'success'; text: string } | null>(null);
+
+  // Corretores (Team Roster) Form State
+  const [editingCorretorId, setEditingCorretorId] = useState<string | null>(null);
+  const [corNome, setCorNome] = useState('');
+  const [corCreci, setCorCreci] = useState('');
+  const [corTelefone, setCorTelefone] = useState('');
+  const [corWhats, setCorWhats] = useState('');
+  const [corEmail, setCorEmail] = useState('');
+  const [corCargo, setCorCargo] = useState('');
+  const [corFoto, setCorFoto] = useState('');
+  const [corCropSrc, setCorCropSrc] = useState<string | null>(null);
+  const [corMsg, setCorMsg] = useState<{ type: 'error' | 'success'; text: string } | null>(null);
+  const [deletingCorretorId, setDeletingCorretorId] = useState<string | null>(null);
 
   // Drag and Drop Photo state
   const [photoDragSrcIndex, setPhotoDragSrcIndex] = useState<number | null>(null);
@@ -203,45 +250,36 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoginError('');
-    const creds = getStoredCredentials();
 
-    const passHash = await sha256(loginPass);
+    const { error } = await supabase.auth.signInWithPassword({
+      email: loginEmail.trim(),
+      password: loginPass
+    });
 
-    if (loginUser.trim().toLowerCase() === creds.user.toLowerCase() && passHash === creds.passHash) {
-      setIsLoggedIn(true);
-      if (typeof window !== 'undefined') {
-        sessionStorage.setItem('broker-session', '1');
-      }
-    } else {
-      setLoginError('Usuário ou senha incorretos.');
+    if (error) {
+      setLoginError('E-mail ou senha incorretos.');
+      return;
     }
+
+    const owned = await resolveOwnerTenantId();
+    if (owned !== tenantId) {
+      await supabase.auth.signOut();
+      setOwnerTenantId(null);
+      setLoginError('Essas credenciais não têm acesso a este site.');
+      return;
+    }
+    setOwnerTenantId(owned);
   };
 
-  const handleLogout = () => {
-    setIsLoggedIn(false);
-    if (typeof window !== 'undefined') {
-      sessionStorage.removeItem('broker-session');
-    }
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setOwnerTenantId(null);
   };
 
-  // Change Login & Password Handler
+  // Change Password Handler
   const handleChangeCredentials = async (e: React.FormEvent) => {
     e.preventDefault();
     setCredMsg(null);
-
-    const newUser = credNewUser.trim();
-    if (!newUser) {
-      setCredMsg({ type: 'error', text: 'Informe o novo nome de usuário / login.' });
-      return;
-    }
-
-    const creds = getStoredCredentials();
-    const currentHash = await sha256(credCurrentPass);
-
-    if (currentHash !== creds.passHash) {
-      setCredMsg({ type: 'error', text: 'A senha atual informada está incorreta.' });
-      return;
-    }
 
     if (credNewPass.length < 4) {
       setCredMsg({ type: 'error', text: 'A nova senha deve ter no mínimo 4 caracteres.' });
@@ -253,16 +291,30 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
       return;
     }
 
-    const newPassHash = await sha256(credNewPass);
-    const ok = saveStoredCredentials(newUser, newPassHash);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user?.email) {
+      setCredMsg({ type: 'error', text: 'Sessão expirada. Faça login novamente.' });
+      return;
+    }
 
-    if (ok) {
-      setCredMsg({ type: 'success', text: 'Login e senha alterados com sucesso! Utilize o novo usuário e senha nos próximos acessos.' });
+    const { error: reauthError } = await supabase.auth.signInWithPassword({
+      email: user.email,
+      password: credCurrentPass
+    });
+    if (reauthError) {
+      setCredMsg({ type: 'error', text: 'A senha atual informada está incorreta.' });
+      return;
+    }
+
+    const { error: updateError } = await supabase.auth.updateUser({ password: credNewPass });
+
+    if (!updateError) {
+      setCredMsg({ type: 'success', text: 'Senha alterada com sucesso! Utilize a nova senha nos próximos acessos.' });
       setCredCurrentPass('');
       setCredNewPass('');
       setCredConfirmPass('');
     } else {
-      setCredMsg({ type: 'error', text: 'Não foi possível salvar as novas credenciais.' });
+      setCredMsg({ type: 'error', text: 'Não foi possível salvar a nova senha.' });
     }
   };
 
@@ -272,6 +324,8 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
     setPropTitulo('');
     setPropTransacao('Venda');
     setPropTipo('Casa');
+    setPropCep('');
+    setPropCepError('');
     setPropBairro('');
     setPropCidade('');
     setPropEstado('SC');
@@ -285,11 +339,18 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
     setPropDestaque(false);
     setPropTags([]);
     setPropPrevisaoEntrega('');
+    setPropPrevisaoMes('');
     setPropCustomTagInput('');
     setPropFotos([]);
     setPropProprietarioNome('');
     setPropProprietarioTelefone('');
     setPropProprietarioObs('');
+    setPropCorretorModo('');
+    setPropCorretorNome('');
+    setPropCorretorCreci('');
+    setPropCorretorWhats('');
+    setPropCorretorCargo('');
+    setPropCorretorFoto('');
     setPropMsg(null);
     setFormSection('imovel');
   };
@@ -300,6 +361,8 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
     setPropTitulo(p.titulo || '');
     setPropTransacao(p.transacao || 'Venda');
     setPropTipo(p.tipo || 'Casa');
+    setPropCep(p.cep || '');
+    setPropCepError('');
     setPropBairro(p.bairro || '');
     setPropCidade(p.cidade || '');
     setPropEstado(p.estado || 'SC');
@@ -313,11 +376,24 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
     setPropDestaque(!!p.destaque);
     setPropTags(p.tags || []);
     setPropPrevisaoEntrega(p.previsaoEntrega || '');
+    setPropPrevisaoMes('');
     setPropCustomTagInput('');
     setPropFotos([...(p.fotos || [])]);
     setPropProprietarioNome(p.proprietarioNome || '');
     setPropProprietarioTelefone(p.proprietarioTelefone || '');
     setPropProprietarioObs(p.proprietarioObs || '');
+    if (p.corretorId && corretores.some((c) => c.id === p.corretorId)) {
+      setPropCorretorModo(p.corretorId);
+    } else if (p.corretorNome) {
+      setPropCorretorModo('__custom__');
+    } else {
+      setPropCorretorModo('');
+    }
+    setPropCorretorNome(p.corretorNome || '');
+    setPropCorretorCreci(p.corretorCreci || '');
+    setPropCorretorWhats(p.corretorWhats || '');
+    setPropCorretorCargo(p.corretorCargo || '');
+    setPropCorretorFoto(p.corretorFoto || '');
     setPropMsg(null);
     setFormSection('imovel');
     setActiveTab('form');
@@ -325,9 +401,7 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
 
   // Delete Property
   const executeDeleteProperty = (id: string) => {
-    deleteStoredProperty(id);
     const updated = properties.filter(p => p.id !== id);
-    saveStoredProperties(updated);
     onUpdateProperties(updated);
     setDeletingPropId(null);
   };
@@ -345,19 +419,27 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
 
     const toProcess = files.slice(0, remaining);
     let failed = 0;
+    let oversized = 0;
     const newPhotos: string[] = [];
 
     for (const file of toProcess) {
+      if (file.size > MAX_PHOTO_SIZE_MB * 1024 * 1024) {
+        oversized++;
+        continue;
+      }
       try {
-        const dataUrl = await resizeImageToDataUrl(file, 1100, 0.75);
-        newPhotos.push(dataUrl);
+        const url = await resizeAndUploadImage(file, tenantId, 'properties', 1100, 0.75);
+        newPhotos.push(url);
       } catch (err) {
         failed++;
       }
     }
 
-    if (failed > 0) {
-      setPropMsg({ type: 'error', text: `${failed} foto(s) não puderam ser processadas.` });
+    if (oversized > 0 || failed > 0) {
+      const parts: string[] = [];
+      if (oversized > 0) parts.push(`${oversized} foto(s) acima de ${MAX_PHOTO_SIZE_MB}MB foram ignoradas`);
+      if (failed > 0) parts.push(`${failed} foto(s) não puderam ser processadas`);
+      setPropMsg({ type: 'error', text: `${parts.join('. ')}.` });
     } else {
       setPropMsg(null);
     }
@@ -378,6 +460,76 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
     updated.splice(targetIndex, 0, moved);
     setPropFotos(updated);
     setPhotoDragSrcIndex(null);
+  };
+
+  // Busca o endereço a partir do CEP informado e preenche Endereço, Bairro, Cidade e Estado
+  const handleBuscarCep = async () => {
+    const digits = propCep.replace(/\D/g, '');
+    if (digits.length !== 8) {
+      setPropCepError('CEP inválido. Digite os 8 números.');
+      return;
+    }
+
+    setPropCepLoading(true);
+    setPropCepError('');
+
+    try {
+      const endereco = await fetchEnderecoPorCep(digits);
+      if (!endereco) {
+        setPropCepError('CEP não encontrado.');
+        return;
+      }
+      if (endereco.logradouro) setPropEndereco(endereco.logradouro.toUpperCase());
+      if (endereco.bairro) setPropBairro(endereco.bairro.toUpperCase());
+      if (endereco.estado) setPropEstado(endereco.estado);
+      if (endereco.cidade) setPropCidade(endereco.cidade);
+    } catch (err) {
+      setPropCepError('Erro ao buscar o CEP. Tente novamente.');
+    } finally {
+      setPropCepLoading(false);
+    }
+  };
+
+  // Muda o corretor responsável pelo imóvel: padrão do site, um corretor da equipe, ou personalizado
+  const handleCorretorModoChange = (modo: string) => {
+    setPropCorretorModo(modo);
+    if (modo === '') {
+      setPropCorretorNome('');
+      setPropCorretorCreci('');
+      setPropCorretorWhats('');
+      setPropCorretorCargo('');
+      setPropCorretorFoto('');
+    } else if (modo === '__custom__') {
+      setPropCorretorNome(config.nome || '');
+      setPropCorretorCreci(config.creci || '');
+      setPropCorretorWhats(config.whats || '');
+      setPropCorretorCargo(config.subtitulo || '');
+      setPropCorretorFoto(config.fotoCorretor || '');
+    } else {
+      const c = corretores.find((c) => c.id === modo);
+      if (c) {
+        setPropCorretorNome(c.nome);
+        setPropCorretorCreci(c.creci || '');
+        setPropCorretorWhats(c.whats || '');
+        setPropCorretorCargo(c.cargo || '');
+        setPropCorretorFoto(c.foto || '');
+      }
+    }
+  };
+
+  const handlePropCorretorPhotoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > MAX_PHOTO_SIZE_MB * 1024 * 1024) {
+      setPropMsg({ type: 'error', text: `A foto excede o limite de ${MAX_PHOTO_SIZE_MB}MB.` });
+      e.target.value = '';
+      return;
+    }
+    try {
+      const url = await resizeAndUploadImage(file, tenantId, 'corretores', 800, 0.85);
+      setPropCorretorFoto(url);
+    } catch (err) {}
+    e.target.value = '';
   };
 
   // Save Property Form
@@ -403,6 +555,7 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
       cidade: propCidade.toUpperCase().trim(),
       estado: propEstado.toUpperCase().trim(),
       endereco: propEndereco.toUpperCase().trim(),
+      cep: propCep.trim(),
       preco: Number(propPreco) || 0,
       quartos: Number(propQuartos) || 0,
       banheiros: Number(propBanheiros) || 0,
@@ -415,7 +568,13 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
       fotos: propFotos,
       proprietarioNome: propProprietarioNome.trim(),
       proprietarioTelefone: propProprietarioTelefone.trim(),
-      proprietarioObs: propProprietarioObs.trim()
+      proprietarioObs: propProprietarioObs.trim(),
+      corretorId: propCorretorModo && propCorretorModo !== '__custom__' ? propCorretorModo : undefined,
+      corretorNome: propCorretorModo ? propCorretorNome.trim() || undefined : undefined,
+      corretorCreci: propCorretorModo ? propCorretorCreci.trim() || undefined : undefined,
+      corretorWhats: propCorretorModo ? propCorretorWhats.trim().replace(/\D/g, '') || undefined : undefined,
+      corretorFoto: propCorretorModo ? propCorretorFoto.trim() || undefined : undefined,
+      corretorCargo: propCorretorModo ? propCorretorCargo.trim() || undefined : undefined
     };
 
     let updatedList: Property[];
@@ -423,12 +582,6 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
       updatedList = [newProp, ...properties];
     } else {
       updatedList = properties.map(p => (p.id === id ? newProp : p));
-    }
-
-    const ok = saveStoredProperties(updatedList);
-    if (!ok) {
-      setPropMsg({ type: 'error', text: 'Não foi possível salvar no navegador. Tente com fotos menores.' });
-      return;
     }
 
     onUpdateProperties(updatedList);
@@ -443,6 +596,11 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
   const handleLogoFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (file.size > MAX_PHOTO_SIZE_MB * 1024 * 1024) {
+      setCfgMsg({ type: 'error', text: `A imagem excede o limite de ${MAX_PHOTO_SIZE_MB}MB.` });
+      e.target.value = '';
+      return;
+    }
     const reader = new FileReader();
     reader.onload = () => {
       setCropTargetSrc(reader.result as string);
@@ -464,12 +622,21 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
 
     const toProcess = files.slice(0, remaining);
     const newBanners: string[] = [];
+    let oversized = 0;
 
     for (const file of toProcess) {
+      if (file.size > MAX_PHOTO_SIZE_MB * 1024 * 1024) {
+        oversized++;
+        continue;
+      }
       try {
-        const dataUrl = await resizeImageToDataUrl(file, 1800, 0.75);
-        newBanners.push(dataUrl);
+        const url = await resizeAndUploadImage(file, tenantId, 'banners', 1800, 0.75);
+        newBanners.push(url);
       } catch (err) {}
+    }
+
+    if (oversized > 0) {
+      setCfgMsg({ type: 'error', text: `${oversized} banner(s) acima de ${MAX_PHOTO_SIZE_MB}MB foram ignorados.` });
     }
 
     const startIdx = cfgBanners.length;
@@ -490,9 +657,14 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
   const handleBrokerPhotoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (file.size > MAX_PHOTO_SIZE_MB * 1024 * 1024) {
+      setCfgMsg({ type: 'error', text: `A foto excede o limite de ${MAX_PHOTO_SIZE_MB}MB.` });
+      e.target.value = '';
+      return;
+    }
     try {
-      const dataUrl = await resizeImageToDataUrl(file, 900, 0.85);
-      setCfgFotoCorretor(dataUrl);
+      const url = await resizeAndUploadImage(file, tenantId, 'corretores', 900, 0.85);
+      setCfgFotoCorretor(url);
       setCfgMsg({ type: 'success', text: 'Foto do corretor selecionada com sucesso!' });
     } catch (err) {
       setCfgMsg({ type: 'error', text: 'Não foi possível carregar a foto do corretor.' });
@@ -528,12 +700,6 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
       imoveisNegociados: cfgImoveisNegociados.trim()
     };
 
-    const ok = saveStoredConfig(newConfig);
-    if (!ok) {
-      setCfgMsg({ type: 'error', text: 'Falha ao salvar configurações.' });
-      return;
-    }
-
     onUpdateConfig(newConfig);
     setCfgMsg({ type: 'success', text: '✓ Alterações salvas com sucesso! As configurações do seu site foram atualizadas.' });
     setTimeout(() => setCfgMsg(null), 4000);
@@ -543,7 +709,8 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
   const resetTestForm = () => {
     setEditingTestId(null);
     setTestNome('');
-    setTestLocal('');
+    setTestEstado('');
+    setTestCidade('');
     setTestNota(5);
     setTestTexto('');
     setTestOrigem('google');
@@ -555,7 +722,17 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
   const handleEditTestimonial = (t: Testimonial) => {
     setEditingTestId(t.id);
     setTestNome(t.nome);
-    setTestLocal(t.local || '');
+
+    // Depoimentos antigos guardam "Cidade/UF" como texto livre; tenta separar para os selects
+    const match = (t.local || '').trim().match(/^(.+)\/([A-Za-z]{2})$/);
+    if (match && ESTADOS_BR.some((uf) => uf.sigla === match[2].toUpperCase())) {
+      setTestCidade(match[1].trim());
+      setTestEstado(match[2].toUpperCase());
+    } else {
+      setTestCidade(t.local || '');
+      setTestEstado('');
+    }
+
     setTestNota(t.nota || 5);
     setTestTexto(t.texto);
     setTestOrigem(t.origem || 'direto');
@@ -565,9 +742,7 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
   };
 
   const executeDeleteTestimonial = (id: string) => {
-    deleteStoredTestimonial(id);
     const updated = testimonials.filter(t => t.id !== id);
-    saveStoredTestimonials(updated);
     onUpdateTestimonials(updated);
     setDeletingTestimonialId(null);
   };
@@ -578,12 +753,13 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
 
     const id = editingTestId || `t${Date.now()}${Math.floor(Math.random() * 1000)}`;
     const isNew = !editingTestId;
+    const local = testCidade.trim() ? `${testCidade.trim()}${testEstado ? `/${testEstado}` : ''}` : '';
 
     const newTest: Testimonial = {
       id,
       createdAt: isNew ? Date.now() : (testimonials.find(t => t.id === id)?.createdAt || Date.now()),
       nome: testNome.trim(),
-      local: testLocal.trim(),
+      local,
       nota: Number(testNota) || 5,
       texto: testTexto.trim(),
       origem: testOrigem,
@@ -596,12 +772,6 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
       updatedList = [newTest, ...testimonials];
     } else {
       updatedList = testimonials.map(t => (t.id === id ? newTest : t));
-    }
-
-    const ok = saveStoredTestimonials(updatedList);
-    if (!ok) {
-      setTestMsg({ type: 'error', text: 'Erro ao salvar depoimento.' });
-      return;
     }
 
     onUpdateTestimonials(updatedList);
@@ -647,9 +817,85 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
     ];
 
     const merged = [...sampleReviews, ...testimonials];
-    saveStoredTestimonials(merged);
     onUpdateTestimonials(merged);
     setTestMsg({ type: 'success', text: 'Avaliações do Google importadas com sucesso!' });
+  };
+
+  // Corretores (Team Roster) Handlers
+  const resetCorretorForm = () => {
+    setEditingCorretorId(null);
+    setCorNome('');
+    setCorCreci('');
+    setCorTelefone('');
+    setCorWhats('');
+    setCorEmail('');
+    setCorCargo('');
+    setCorFoto('');
+    setCorMsg(null);
+  };
+
+  const handleEditCorretor = (c: Corretor) => {
+    setEditingCorretorId(c.id);
+    setCorNome(c.nome);
+    setCorCreci(c.creci || '');
+    setCorTelefone(c.telefone || '');
+    setCorWhats(c.whats || '');
+    setCorEmail(c.email || '');
+    setCorCargo(c.cargo || '');
+    setCorFoto(c.foto || '');
+    setCorMsg(null);
+  };
+
+  const executeDeleteCorretor = (id: string) => {
+    const updated = corretores.filter((c) => c.id !== id);
+    onUpdateCorretores?.(updated);
+    setDeletingCorretorId(null);
+  };
+
+  const handleCorretorPhotoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > MAX_PHOTO_SIZE_MB * 1024 * 1024) {
+      setCorMsg({ type: 'error', text: `A foto excede o limite de ${MAX_PHOTO_SIZE_MB}MB.` });
+      e.target.value = '';
+      return;
+    }
+    try {
+      const url = await resizeAndUploadImage(file, tenantId, 'corretores', 800, 0.85);
+      setCorFoto(url);
+    } catch (err) {}
+    e.target.value = '';
+  };
+
+  const handleSaveCorretor = (e: React.FormEvent) => {
+    e.preventDefault();
+    setCorMsg(null);
+
+    const id = editingCorretorId || `cor${Date.now()}${Math.floor(Math.random() * 1000)}`;
+    const isNew = !editingCorretorId;
+
+    const newCor: Corretor = {
+      id,
+      createdAt: isNew ? Date.now() : (corretores.find((c) => c.id === id)?.createdAt || Date.now()),
+      nome: corNome.trim(),
+      creci: corCreci.trim(),
+      telefone: corTelefone.trim(),
+      whats: corWhats.trim().replace(/\D/g, ''),
+      email: corEmail.trim() || undefined,
+      cargo: corCargo.trim() || undefined,
+      foto: corFoto.trim() || undefined
+    };
+
+    let updatedList: Corretor[];
+    if (isNew) {
+      updatedList = [newCor, ...corretores];
+    } else {
+      updatedList = corretores.map((c) => (c.id === id ? newCor : c));
+    }
+
+    onUpdateCorretores?.(updatedList);
+    setCorMsg({ type: 'success', text: '✓ Corretor salvo com sucesso!' });
+    setTimeout(() => resetCorretorForm(), 1500);
   };
 
   return (
@@ -695,13 +941,13 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
                   <form onSubmit={handleLogin} className="space-y-4">
                     <div>
                       <label className="block text-xs font-semibold tracking-wider uppercase text-[#68707C] mb-1.5">
-                        Usuário
+                        E-mail
                       </label>
                       <input
-                        type="text"
-                        value={loginUser}
-                        onChange={(e) => setLoginUser(e.target.value)}
-                        placeholder="admin1"
+                        type="email"
+                        value={loginEmail}
+                        onChange={(e) => setLoginEmail(e.target.value)}
+                        placeholder="voce@exemplo.com.br"
                         required
                         className="w-full px-3.5 py-2.5 bg-[#F2F4F6] border border-[#DEE2E7] rounded-[2px] text-sm text-[#15263A] focus:outline-none focus:bg-white focus:border-[#0F3D5C]"
                       />
@@ -798,6 +1044,21 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
                     }`}
                   >
                     Depoimentos ({testimonials.length})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      resetCorretorForm();
+                      setActiveTab('corretores');
+                    }}
+                    className={`px-4 py-2.5 text-xs sm:text-sm font-semibold tracking-wider border-b-2 transition-colors whitespace-nowrap inline-flex items-center gap-1.5 ${
+                      activeTab === 'corretores'
+                        ? 'border-[#0F3D5C] text-[#0F3D5C]'
+                        : 'border-transparent text-[#68707C] hover:text-[#15263A]'
+                    }`}
+                  >
+                    <Users className="w-3.5 h-3.5" />
+                    <span>Corretores ({corretores.length})</span>
                   </button>
                   <button
                     type="button"
@@ -1081,6 +1342,17 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
                       >
                         Proprietário / Anunciante
                       </button>
+                      <button
+                        type="button"
+                        onClick={() => setFormSection('corretor')}
+                        className={`px-3.5 py-1.5 text-xs font-semibold uppercase tracking-wider rounded-[2px] border transition-colors ${
+                          formSection === 'corretor'
+                            ? 'bg-[#0F3D5C] text-white border-[#0F3D5C]'
+                            : 'border-[#DEE2E7] text-[#68707C] hover:border-[#15263A]'
+                        }`}
+                      >
+                        Corretor Responsável
+                      </button>
                     </div>
 
                     {propMsg && (
@@ -1150,6 +1422,45 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
                             </div>
                           </div>
 
+                          <div>
+                            <label className="block text-xs font-semibold tracking-wider uppercase text-[#68707C] mb-1">
+                              CEP (Opcional - preenche o endereço automaticamente)
+                            </label>
+                            <div className="flex gap-2">
+                              <input
+                                type="text"
+                                value={propCep}
+                                onChange={(e) => {
+                                  setPropCep(formatCep(e.target.value));
+                                  setPropCepError('');
+                                }}
+                                onBlur={() => {
+                                  if (propCep.replace(/\D/g, '').length === 8) handleBuscarCep();
+                                }}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                    e.preventDefault();
+                                    handleBuscarCep();
+                                  }
+                                }}
+                                placeholder="00000-000"
+                                maxLength={9}
+                                className="w-full px-3.5 py-2.5 bg-[#F2F4F6] border border-[#DEE2E7] rounded-[2px] text-sm focus:outline-none focus:bg-white focus:border-[#0F3D5C]"
+                              />
+                              <button
+                                type="button"
+                                onClick={handleBuscarCep}
+                                disabled={propCepLoading}
+                                className="px-4 py-2.5 bg-[#0F3D5C] hover:bg-[#0B2C44] disabled:opacity-60 text-white text-xs font-bold uppercase tracking-wider rounded-[2px] transition-colors shrink-0 cursor-pointer"
+                              >
+                                {propCepLoading ? 'Buscando...' : 'Buscar'}
+                              </button>
+                            </div>
+                            {propCepError && (
+                              <p className="text-xs text-[#A8452F] mt-1">{propCepError}</p>
+                            )}
+                          </div>
+
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                               <label className="block text-xs font-semibold tracking-wider uppercase text-[#68707C] mb-1">
@@ -1167,10 +1478,10 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
                               <label className="block text-xs font-semibold tracking-wider uppercase text-[#68707C] mb-1">
                                 Cidade
                               </label>
-                              <input
-                                type="text"
+                              <CidadeSelect
+                                estado={propEstado}
                                 value={propCidade}
-                                onChange={(e) => setPropCidade(e.target.value.toUpperCase())}
+                                onChange={setPropCidade}
                                 required
                                 className="w-full px-3.5 py-2.5 bg-[#F2F4F6] border border-[#DEE2E7] rounded-[2px] text-sm focus:outline-none focus:bg-white focus:border-[#0F3D5C]"
                               />
@@ -1182,14 +1493,22 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
                               <label className="block text-xs font-semibold tracking-wider uppercase text-[#68707C] mb-1">
                                 Estado (UF)
                               </label>
-                              <input
-                                type="text"
+                              <select
                                 value={propEstado}
-                                onChange={(e) => setPropEstado(e.target.value.toUpperCase())}
+                                onChange={(e) => {
+                                  setPropEstado(e.target.value);
+                                  setPropCidade('');
+                                }}
                                 required
-                                maxLength={2}
                                 className="w-full px-3.5 py-2.5 bg-[#F2F4F6] border border-[#DEE2E7] rounded-[2px] text-sm focus:outline-none focus:bg-white focus:border-[#0F3D5C]"
-                              />
+                              >
+                                <option value="">Selecione</option>
+                                {ESTADOS_BR.map((uf) => (
+                                  <option key={uf.sigla} value={uf.sigla}>
+                                    {uf.sigla} - {uf.nome}
+                                  </option>
+                                ))}
+                              </select>
                             </div>
                             <div>
                               <label className="block text-xs font-semibold tracking-wider uppercase text-[#68707C] mb-1">
@@ -1394,15 +1713,34 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
                                 <Calendar className="w-4 h-4 text-[#0F3D5C]" />
                                 Previsão de Entrega da Obra (Imóveis Na Planta / Lançamento)
                               </label>
-                              <input
-                                type="text"
-                                value={propPrevisaoEntrega}
-                                onChange={(e) => setPropPrevisaoEntrega(e.target.value)}
-                                placeholder="Ex: Dezembro / 2026, 2º Semestre de 2027..."
-                                className="w-full px-3 py-2 bg-white border border-[#DEE2E7] rounded-[2px] text-xs focus:outline-none focus:border-[#0F3D5C]"
-                              />
+
+                              <div className="flex items-stretch gap-2">
+                                <input
+                                  type="text"
+                                  value={propPrevisaoEntrega}
+                                  onChange={(e) => setPropPrevisaoEntrega(e.target.value)}
+                                  placeholder="Ex: Dezembro / 2026, 2º Semestre de 2027..."
+                                  className="flex-1 min-w-0 px-3 py-2 bg-white border border-[#DEE2E7] rounded-[2px] text-xs focus:outline-none focus:border-[#0F3D5C]"
+                                />
+                                <label
+                                  title="Escolher mês/ano no calendário"
+                                  className="relative shrink-0 flex items-center gap-1.5 px-2.5 py-2 bg-white border border-[#DEE2E7] rounded-[2px] text-[#68707C] hover:border-[#0F3D5C] hover:text-[#0F3D5C] transition-colors cursor-pointer"
+                                >
+                                  <Calendar className="w-4 h-4 pointer-events-none" />
+                                  <input
+                                    type="month"
+                                    value={propPrevisaoMes}
+                                    onChange={(e) => {
+                                      setPropPrevisaoMes(e.target.value);
+                                      setPropPrevisaoEntrega(formatMesAno(e.target.value));
+                                    }}
+                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                  />
+                                </label>
+                              </div>
+
                               <p className="text-[11px] text-[#68707C] mt-1">
-                                Informe a data ou período estimado de conclusão da obra/chaves.
+                                Escreva livremente ou use o ícone de calendário para preencher com um mês/ano — as duas opções ficam sempre disponíveis nesta mesma barra.
                               </p>
                             </div>
                           </div>
@@ -1433,7 +1771,7 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
                             >
                               <Upload className="w-6 h-6 mx-auto text-[#68707C] mb-1" />
                               <span className="text-xs text-[#68707C]">
-                                Clique para selecionar fotos (JPG ou PNG, até 20 fotos por imóvel)
+                                Clique para selecionar fotos (JPG ou PNG, até 20 fotos por imóvel, máx. {MAX_PHOTO_SIZE_MB}MB cada)
                               </span>
                               <input
                                 id="photoInput"
@@ -1462,6 +1800,19 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
                                     </span>
                                   )}
                                   <img src={src} alt="" className="w-full h-full object-cover" />
+                                  <div className="absolute inset-x-0 bottom-0 flex items-center justify-center gap-1 py-1 bg-[#122234]/70 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setPropPhotoCropSrc(src);
+                                        setPropPhotoCropIndex(i);
+                                      }}
+                                      title="Enquadrar foto"
+                                      className="w-5 h-5 bg-white/90 text-[#0F3D5C] rounded-[1px] flex items-center justify-center hover:bg-white z-10"
+                                    >
+                                      <Crop className="w-3 h-3" />
+                                    </button>
+                                  </div>
                                   <button
                                     type="button"
                                     onClick={() => removePhoto(i)}
@@ -1473,11 +1824,11 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
                               ))}
                             </div>
                             <p className="text-[11px] text-[#68707C] mt-1.5">
-                              Arraste uma foto para alterar a ordem. A primeira foto é a capa do anúncio.
+                              Arraste uma foto para alterar a ordem, ou passe o mouse sobre ela para enquadrar. A primeira foto é a capa do anúncio.
                             </p>
                           </div>
                         </>
-                      ) : (
+                      ) : formSection === 'proprietario' ? (
                         /* PRIVATE OWNER SECTION */
                         <div className="space-y-4">
                           <p className="text-xs text-[#68707C] bg-[#F2F4F6] p-3 border border-[#DEE2E7] rounded-[2px]">
@@ -1522,6 +1873,136 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
                               className="w-full px-3.5 py-2.5 bg-[#F2F4F6] border border-[#DEE2E7] rounded-[2px] text-sm focus:outline-none focus:bg-white focus:border-[#0F3D5C]"
                             />
                           </div>
+                        </div>
+                      ) : (
+                        /* CORRETOR RESPONSAVEL SECTION */
+                        <div className="space-y-4">
+                          <div>
+                            <label className="block text-xs font-semibold tracking-wider uppercase text-[#68707C] mb-1">
+                              Responsável por este imóvel
+                            </label>
+                            <select
+                              value={propCorretorModo}
+                              onChange={(e) => handleCorretorModoChange(e.target.value)}
+                              className="w-full px-3.5 py-2.5 bg-[#F2F4F6] border border-[#DEE2E7] rounded-[2px] text-sm focus:outline-none focus:bg-white focus:border-[#0F3D5C]"
+                            >
+                              <option value="">Padrão (usar dados principais do site)</option>
+                              {corretores.map((c) => (
+                                <option key={c.id} value={c.id}>{c.nome}</option>
+                              ))}
+                              <option value="__custom__">Personalizado (digitar manualmente)</option>
+                            </select>
+                          </div>
+
+                          {propCorretorModo === '' ? (
+                            <p className="text-xs text-[#68707C] bg-[#F2F4F6] p-3 border border-[#DEE2E7] rounded-[2px]">
+                              Este imóvel vai exibir os dados de contato principais do site configurados em &quot;Configurações&quot;:{' '}
+                              <strong className="text-[#15263A]">{config.nome}</strong>{config.telefone ? ` · ${config.telefone}` : ''}.
+                            </p>
+                          ) : (
+                            <>
+                              <p className="text-xs text-[#68707C]">
+                                Esses dados substituem os do site apenas para este imóvel, e são usados no botão de WhatsApp da página do imóvel.
+                              </p>
+
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                  <label className="block text-xs font-semibold tracking-wider uppercase text-[#68707C] mb-1">
+                                    Nome
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={propCorretorNome}
+                                    onChange={(e) => setPropCorretorNome(e.target.value)}
+                                    required
+                                    className="w-full px-3.5 py-2.5 bg-[#F2F4F6] border border-[#DEE2E7] rounded-[2px] text-sm focus:outline-none focus:bg-white focus:border-[#0F3D5C]"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block text-xs font-semibold tracking-wider uppercase text-[#68707C] mb-1">
+                                    Cargo
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={propCorretorCargo}
+                                    onChange={(e) => setPropCorretorCargo(e.target.value)}
+                                    placeholder="Ex: Corretor de Imóveis"
+                                    className="w-full px-3.5 py-2.5 bg-[#F2F4F6] border border-[#DEE2E7] rounded-[2px] text-sm focus:outline-none focus:bg-white focus:border-[#0F3D5C]"
+                                  />
+                                </div>
+                              </div>
+
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                  <label className="block text-xs font-semibold tracking-wider uppercase text-[#68707C] mb-1">
+                                    CRECI
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={propCorretorCreci}
+                                    onChange={(e) => setPropCorretorCreci(e.target.value)}
+                                    placeholder="CRECI 00000-F"
+                                    className="w-full px-3.5 py-2.5 bg-[#F2F4F6] border border-[#DEE2E7] rounded-[2px] text-sm focus:outline-none focus:bg-white focus:border-[#0F3D5C]"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block text-xs font-semibold tracking-wider uppercase text-[#68707C] mb-1">
+                                    WhatsApp (números com DDI 55)
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={propCorretorWhats}
+                                    onChange={(e) => setPropCorretorWhats(e.target.value)}
+                                    placeholder="5548999990000"
+                                    className="w-full px-3.5 py-2.5 bg-[#F2F4F6] border border-[#DEE2E7] rounded-[2px] text-sm focus:outline-none focus:bg-white focus:border-[#0F3D5C]"
+                                  />
+                                </div>
+                              </div>
+
+                              <div className="bg-white border border-[#DEE2E7] p-3.5 rounded-[2px]">
+                                <label className="block text-xs font-semibold uppercase text-[#68707C] mb-2">
+                                  Foto
+                                </label>
+                                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                                  {propCorretorFoto ? (
+                                    <div className="flex items-center gap-3">
+                                      <div className="relative w-12 h-12 rounded-full overflow-hidden border border-[#DEE2E7] shrink-0 bg-[#122234]">
+                                        <img src={propCorretorFoto} alt="Foto do corretor" className="w-full h-full object-cover" />
+                                      </div>
+                                      <div className="flex items-center gap-2">
+                                        <button
+                                          type="button"
+                                          onClick={() => setPropCorretorCropSrc(propCorretorFoto)}
+                                          className="px-2.5 py-1.5 bg-[#EAF0F6] hover:bg-[#0F3D5C] hover:text-white text-[#0F3D5C] text-xs font-bold uppercase rounded-[2px] transition-colors flex items-center gap-1 cursor-pointer"
+                                        >
+                                          <Crop className="w-3.5 h-3.5" />
+                                          Enquadrar
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={() => setPropCorretorFoto('')}
+                                          className="px-2.5 py-1.5 text-[#A8452F] hover:bg-[#F7EAE6] text-xs font-bold uppercase rounded-[2px] transition-colors cursor-pointer"
+                                        >
+                                          Remover
+                                        </button>
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <label className="px-3.5 py-2 bg-[#0F3D5C] hover:bg-[#0B2C44] text-white text-xs font-bold uppercase tracking-wider rounded-[2px] transition-colors flex items-center justify-center gap-1.5 cursor-pointer shrink-0 shadow-xs">
+                                      <Upload className="w-4 h-4" />
+                                      <span>Escolher foto (máx. {MAX_PHOTO_SIZE_MB}MB)</span>
+                                      <input
+                                        type="file"
+                                        accept="image/*"
+                                        className="hidden"
+                                        onChange={handlePropCorretorPhotoSelect}
+                                      />
+                                    </label>
+                                  )}
+                                </div>
+                              </div>
+                            </>
+                          )}
                         </div>
                       )}
 
@@ -1754,7 +2235,7 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
                                   📸 Clique para fazer upload da foto de apresentação do corretor
                                 </span>
                                 <span className="text-[11px] text-[#68707C]">
-                                  (Formato vertical recomendado: JPG ou PNG)
+                                  (Formato vertical recomendado: JPG ou PNG, máx. {MAX_PHOTO_SIZE_MB}MB)
                                 </span>
                                 <input
                                   type="file"
@@ -1903,7 +2384,7 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
                           ) : (
                             <label className="border-2 border-dashed border-[#DEE2E7] hover:border-[#0F3D5C] p-4 text-center rounded-[2px] bg-[#F2F4F6] cursor-pointer block flex-1">
                               <span className="text-xs text-[#68707C]">
-                                Clique para escolher imagem do logo (PNG transparente recomendado)
+                                Clique para escolher imagem do logo (PNG transparente recomendado, máx. {MAX_PHOTO_SIZE_MB}MB)
                               </span>
                               <input
                                 type="file"
@@ -1947,7 +2428,7 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
                             Clique para selecionar imagens para o banner rotativo
                           </span>
                           <span className="text-[11px] text-[#68707C] block mt-0.5">
-                            Envie imagens JPG ou PNG. Você poderá clicar em &quot;Editar / Enquadrar&quot; para ajustar cada foto.
+                            Envie imagens JPG ou PNG, máx. {MAX_PHOTO_SIZE_MB}MB cada. Você poderá clicar em &quot;Editar / Enquadrar&quot; para ajustar cada foto.
                           </span>
                           <input
                             type="file"
@@ -2059,28 +2540,48 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
                       )}
 
                       <form onSubmit={handleSaveTestimonial} className="space-y-3">
+                        <div>
+                          <label className="block text-xs font-semibold uppercase text-[#68707C] mb-1">
+                            Nome do cliente
+                          </label>
+                          <input
+                            type="text"
+                            value={testNome}
+                            onChange={(e) => setTestNome(e.target.value)}
+                            required
+                            className="w-full px-3 py-2 bg-white border border-[#DEE2E7] rounded-[2px] text-sm focus:outline-none focus:border-[#0F3D5C]"
+                          />
+                        </div>
+
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           <div>
                             <label className="block text-xs font-semibold uppercase text-[#68707C] mb-1">
-                              Nome do cliente
+                              Estado (Opcional)
                             </label>
-                            <input
-                              type="text"
-                              value={testNome}
-                              onChange={(e) => setTestNome(e.target.value)}
-                              required
+                            <select
+                              value={testEstado}
+                              onChange={(e) => {
+                                setTestEstado(e.target.value);
+                                setTestCidade('');
+                              }}
                               className="w-full px-3 py-2 bg-white border border-[#DEE2E7] rounded-[2px] text-sm focus:outline-none focus:border-[#0F3D5C]"
-                            />
+                            >
+                              <option value="">Selecione</option>
+                              {ESTADOS_BR.map((uf) => (
+                                <option key={uf.sigla} value={uf.sigla}>
+                                  {uf.sigla} - {uf.nome}
+                                </option>
+                              ))}
+                            </select>
                           </div>
                           <div>
                             <label className="block text-xs font-semibold uppercase text-[#68707C] mb-1">
-                              Cidade / Bairro (Opcional)
+                              Cidade (Opcional)
                             </label>
-                            <input
-                              type="text"
-                              value={testLocal}
-                              onChange={(e) => setTestLocal(e.target.value)}
-                              placeholder="Ex: Criciúma/SC"
+                            <CidadeSelect
+                              estado={testEstado}
+                              value={testCidade}
+                              onChange={setTestCidade}
                               className="w-full px-3 py-2 bg-white border border-[#DEE2E7] rounded-[2px] text-sm focus:outline-none focus:border-[#0F3D5C]"
                             />
                           </div>
@@ -2156,9 +2657,14 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
                                       onChange={async (e) => {
                                         const file = e.target.files?.[0];
                                         if (!file) return;
+                                        if (file.size > MAX_PHOTO_SIZE_MB * 1024 * 1024) {
+                                          setTestMsg({ type: 'error', text: `A foto excede o limite de ${MAX_PHOTO_SIZE_MB}MB.` });
+                                          e.target.value = '';
+                                          return;
+                                        }
                                         try {
-                                          const dataUrl = await resizeImageToDataUrl(file, 800, 0.85);
-                                          setTestFoto(dataUrl);
+                                          const url = await resizeAndUploadImage(file, tenantId, 'testimonials', 800, 0.85);
+                                          setTestFoto(url);
                                         } catch (err) {}
                                         e.target.value = '';
                                       }}
@@ -2175,6 +2681,9 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
                                     className="flex-1 px-3 py-1.5 bg-[#F2F4F6] border border-[#DEE2E7] rounded-[2px] text-xs focus:outline-none focus:bg-white focus:border-[#0F3D5C]"
                                   />
                                 </div>
+                              )}
+                              {!testFoto && (
+                                <p className="text-[10px] text-[#68707C] mt-1.5">Tamanho máximo: {MAX_PHOTO_SIZE_MB}MB.</p>
                               )}
                             </div>
                           </div>
@@ -2305,18 +2814,256 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
                 )}
 
                 {/* TAB 5: SEGURANÇA & ACESSO */}
+                {activeTab === 'corretores' && (
+                  <div>
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-5 p-4 bg-[#EAF0F6] border border-[#DEE2E7] rounded-[2px]">
+                      <div>
+                        <h4 className="text-sm font-bold text-[#15263A]">Corretores da Equipe</h4>
+                        <p className="text-xs text-[#68707C]">
+                          Cadastre os corretores da sua equipe para atribuir a cada imóvel um responsável e telefone diferentes dos dados principais do site.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Add/Edit Form */}
+                    <div className="bg-[#F2F4F6] border border-[#DEE2E7] p-5 rounded-[2px] mb-6">
+                      <h4 className="text-sm font-bold text-[#15263A] uppercase tracking-wider mb-3">
+                        {editingCorretorId ? 'Editar Corretor' : 'Adicionar Corretor'}
+                      </h4>
+
+                      {corMsg && (
+                        <div
+                          className={`p-3 mb-3 text-xs font-medium rounded-[2px] border ${
+                            corMsg.type === 'error'
+                              ? 'bg-[#F7EAE6] text-[#A8452F] border-[#E4C3B9]'
+                              : 'bg-[#EAF0E4] text-[#4C6B33] border-[#C9DAB9]'
+                          }`}
+                        >
+                          {corMsg.text}
+                        </div>
+                      )}
+
+                      <form onSubmit={handleSaveCorretor} className="space-y-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-xs font-semibold uppercase text-[#68707C] mb-1">
+                              Nome completo
+                            </label>
+                            <input
+                              type="text"
+                              value={corNome}
+                              onChange={(e) => setCorNome(e.target.value)}
+                              required
+                              className="w-full px-3 py-2 bg-white border border-[#DEE2E7] rounded-[2px] text-sm focus:outline-none focus:border-[#0F3D5C]"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-semibold uppercase text-[#68707C] mb-1">
+                              Cargo
+                            </label>
+                            <input
+                              type="text"
+                              value={corCargo}
+                              onChange={(e) => setCorCargo(e.target.value)}
+                              placeholder="Ex: Corretor de Imóveis"
+                              className="w-full px-3 py-2 bg-white border border-[#DEE2E7] rounded-[2px] text-sm focus:outline-none focus:border-[#0F3D5C]"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                          <div>
+                            <label className="block text-xs font-semibold uppercase text-[#68707C] mb-1">
+                              CRECI
+                            </label>
+                            <input
+                              type="text"
+                              value={corCreci}
+                              onChange={(e) => setCorCreci(e.target.value)}
+                              placeholder="CRECI 00000-F"
+                              className="w-full px-3 py-2 bg-white border border-[#DEE2E7] rounded-[2px] text-sm focus:outline-none focus:border-[#0F3D5C]"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-semibold uppercase text-[#68707C] mb-1">
+                              Telefone
+                            </label>
+                            <input
+                              type="text"
+                              value={corTelefone}
+                              onChange={(e) => setCorTelefone(e.target.value)}
+                              placeholder="(48) 99999-0000"
+                              className="w-full px-3 py-2 bg-white border border-[#DEE2E7] rounded-[2px] text-sm focus:outline-none focus:border-[#0F3D5C]"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-semibold uppercase text-[#68707C] mb-1">
+                              WhatsApp (numeros com DDI 55)
+                            </label>
+                            <input
+                              type="text"
+                              value={corWhats}
+                              onChange={(e) => setCorWhats(e.target.value)}
+                              placeholder="5548999990000"
+                              className="w-full px-3 py-2 bg-white border border-[#DEE2E7] rounded-[2px] text-sm focus:outline-none focus:border-[#0F3D5C]"
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-semibold uppercase text-[#68707C] mb-1">
+                            E-mail (Opcional)
+                          </label>
+                          <input
+                            type="email"
+                            value={corEmail}
+                            onChange={(e) => setCorEmail(e.target.value)}
+                            className="w-full px-3 py-2 bg-white border border-[#DEE2E7] rounded-[2px] text-sm focus:outline-none focus:border-[#0F3D5C]"
+                          />
+                        </div>
+
+                        <div className="bg-white border border-[#DEE2E7] p-3.5 rounded-[2px]">
+                          <label className="block text-xs font-semibold uppercase text-[#68707C] mb-2">
+                            Foto do Corretor
+                          </label>
+                          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                            {corFoto ? (
+                              <div className="flex items-center gap-3">
+                                <div className="relative w-12 h-12 rounded-full overflow-hidden border border-[#DEE2E7] shrink-0 bg-[#122234]">
+                                  <img src={corFoto} alt="Foto do corretor" className="w-full h-full object-cover" />
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    type="button"
+                                    onClick={() => setCorCropSrc(corFoto)}
+                                    className="px-2.5 py-1.5 bg-[#EAF0F6] hover:bg-[#0F3D5C] hover:text-white text-[#0F3D5C] text-xs font-bold uppercase rounded-[2px] transition-colors flex items-center gap-1 cursor-pointer"
+                                  >
+                                    <Crop className="w-3.5 h-3.5" />
+                                    Enquadrar
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => setCorFoto('')}
+                                    className="px-2.5 py-1.5 text-[#A8452F] hover:bg-[#F7EAE6] text-xs font-bold uppercase rounded-[2px] transition-colors cursor-pointer"
+                                  >
+                                    Remover
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              <label className="px-3.5 py-2 bg-[#0F3D5C] hover:bg-[#0B2C44] text-white text-xs font-bold uppercase tracking-wider rounded-[2px] transition-colors flex items-center justify-center gap-1.5 cursor-pointer shrink-0 shadow-xs">
+                                <Upload className="w-4 h-4" />
+                                <span>Escolher foto (max. {MAX_PHOTO_SIZE_MB}MB)</span>
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  className="hidden"
+                                  onChange={handleCorretorPhotoSelect}
+                                />
+                              </label>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="flex gap-2 pt-2">
+                          <button
+                            type="submit"
+                            className="px-5 py-2 bg-[#0F3D5C] hover:bg-[#0B2C44] text-white text-xs font-semibold uppercase tracking-wider rounded-[2px]"
+                          >
+                            Salvar Corretor
+                          </button>
+                          <button
+                            type="button"
+                            onClick={resetCorretorForm}
+                            className="px-3.5 py-2 border border-[#DEE2E7] text-[#68707C] text-xs font-medium uppercase rounded-[2px]"
+                          >
+                            Limpar
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+
+                    {/* Corretores List */}
+                    <div className="border border-[#DEE2E7] divide-y divide-[#DEE2E7] bg-white rounded-[2px]">
+                      {corretores.length === 0 ? (
+                        <div className="p-6 text-center text-xs text-[#68707C]">
+                          Nenhum corretor cadastrado. Enquanto isso, os imóveis usam os dados principais do site.
+                        </div>
+                      ) : (
+                        corretores.map((c) => (
+                          <div key={c.id} className="p-4 flex items-center justify-between gap-4">
+                            <div className="flex items-center gap-3 min-w-0">
+                              {c.foto ? (
+                                <img src={c.foto} alt="" className="w-10 h-10 rounded-full object-cover shrink-0 border border-[#DEE2E7]" />
+                              ) : (
+                                <div className="w-10 h-10 rounded-full bg-[#0F3D5C] text-white text-xs font-bold flex items-center justify-center shrink-0 uppercase">
+                                  {c.nome.charAt(0)}
+                                </div>
+                              )}
+                              <div className="min-w-0">
+                                <div className="text-sm font-bold text-[#15263A] truncate">{c.nome}</div>
+                                <div className="text-xs text-[#68707C] truncate">
+                                  {c.cargo || 'Corretor de Imóveis'} {c.creci ? `· ${c.creci}` : ''} {c.telefone ? `· ${c.telefone}` : ''}
+                                </div>
+                              </div>
+                            </div>
+                            {deletingCorretorId === c.id ? (
+                              <div className="flex items-center gap-1.5 bg-[#F7EAE6] p-1.5 rounded-[2px] border border-[#E4C3B9] shrink-0">
+                                <span className="text-[11px] font-bold text-[#A8452F]">Excluir?</span>
+                                <button
+                                  type="button"
+                                  onClick={() => executeDeleteCorretor(c.id)}
+                                  className="px-2 py-0.5 bg-[#A8452F] text-white text-[11px] font-bold rounded-[2px] hover:bg-[#893826]"
+                                >
+                                  Sim
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setDeletingCorretorId(null)}
+                                  className="px-1.5 py-0.5 bg-white text-[#68707C] text-[11px] rounded-[2px] border border-[#DEE2E7]"
+                                >
+                                  Não
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-2 shrink-0">
+                                <button
+                                  type="button"
+                                  onClick={() => handleEditCorretor(c)}
+                                  className="p-1.5 text-[#68707C] hover:text-[#0F3D5C] border border-[#DEE2E7] rounded-[2px]"
+                                  title="Editar"
+                                >
+                                  <Edit2 className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setDeletingCorretorId(c.id)}
+                                  className="p-1.5 text-[#68707C] hover:text-[#A8452F] border border-[#DEE2E7] rounded-[2px]"
+                                  title="Excluir"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 {activeTab === 'seguranca' && (
                   <form onSubmit={handleChangeCredentials} className="space-y-6 max-w-xl">
                     <div className="bg-[#F2F4F6] border border-[#DEE2E7] p-5 rounded-[2px] space-y-4">
                       <div className="flex items-center gap-2.5 text-[#0F3D5C] pb-3 border-b border-[#DEE2E7]">
                         <Lock className="w-5 h-5" />
                         <h3 className="font-bold text-sm tracking-wider uppercase">
-                          Alterar Login e Senha de Acesso
+                          Alterar Senha de Acesso
                         </h3>
                       </div>
 
                       <p className="text-xs text-[#68707C] leading-relaxed">
-                        Configure seu nome de usuário (login) e nova senha para acessar a Área do Corretor com total segurança.
+                        Configure uma nova senha para acessar a Área do Corretor com total segurança.
                       </p>
 
                       {credMsg && (
@@ -2331,23 +3078,6 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
                           <span>{credMsg.text}</span>
                         </div>
                       )}
-
-                      <div>
-                        <label className="block text-xs font-semibold tracking-wider uppercase text-[#68707C] mb-1.5">
-                          Novo Nome de Usuário / Login
-                        </label>
-                        <input
-                          type="text"
-                          value={credNewUser}
-                          onChange={(e) => setCredNewUser(e.target.value)}
-                          required
-                          placeholder="Ex: admin1 ou corretor.alef"
-                          className="w-full px-3.5 py-2.5 bg-white border border-[#DEE2E7] rounded-[2px] text-sm text-[#15263A] focus:outline-none focus:border-[#0F3D5C]"
-                        />
-                        <p className="text-[11px] text-[#68707C] mt-1">
-                          Este é o nome de usuário que você digitará ao fazer login no painel.
-                        </p>
-                      </div>
 
                       <div>
                         <label className="block text-xs font-semibold tracking-wider uppercase text-[#68707C] mb-1.5">
@@ -2400,7 +3130,7 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
                           type="submit"
                           className="w-full sm:w-auto px-6 py-2.5 bg-[#0F3D5C] hover:bg-[#0B2C44] text-white text-xs font-bold tracking-wider uppercase rounded-[2px] transition-colors"
                         >
-                          Salvar Novo Login e Senha
+                          Salvar Nova Senha
                         </button>
                       </div>
                     </div>
@@ -2417,9 +3147,10 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
         imageSrc={cropTargetSrc}
         title="Ajustar e Enquadrar Logo"
         onClose={() => setCropTargetSrc(null)}
-        onApplyCrop={(croppedUrl) => {
-          setCfgLogo(croppedUrl);
+        onApplyCrop={async (croppedUrl) => {
           setCropTargetSrc(null);
+          const url = await uploadDataUrl(croppedUrl, tenantId, 'logo');
+          setCfgLogo(url);
         }}
       />
 
@@ -2438,14 +3169,14 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
           setBannerCropSrc(null);
           setEditingBannerIndex(null);
         }}
-        onApplyCrop={(croppedUrl) => {
-          if (editingBannerIndex !== null) {
-            setCfgBanners((prev) =>
-              prev.map((b, idx) => (idx === editingBannerIndex ? croppedUrl : b))
-            );
-          }
+        onApplyCrop={async (croppedUrl) => {
+          const index = editingBannerIndex;
           setBannerCropSrc(null);
           setEditingBannerIndex(null);
+          if (index !== null) {
+            const url = await uploadDataUrl(croppedUrl, tenantId, 'banners');
+            setCfgBanners((prev) => prev.map((b, idx) => (idx === index ? url : b)));
+          }
         }}
       />
 
@@ -2459,11 +3190,72 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
         ]}
         initialAspect={{ w: 1, h: 1 }}
         onClose={() => setTestCropSrc(null)}
-        onApplyCrop={(croppedUrl) => {
-          setTestFoto(croppedUrl);
+        onApplyCrop={async (croppedUrl) => {
           setTestCropSrc(null);
+          const url = await uploadDataUrl(croppedUrl, tenantId, 'testimonials');
+          setTestFoto(url);
         }}
       />
+
+      {/* Property Photo Cropper Popup */}
+      <LogoCropModal
+        imageSrc={propPhotoCropSrc}
+        title="Ajustar e Enquadrar Foto do Imóvel"
+        aspectRatios={[
+          { label: 'Padrão (4:3)', w: 4, h: 3 },
+          { label: 'Panorâmica (16:9)', w: 16, h: 9 },
+          { label: 'Quadrada (1:1)', w: 1, h: 1 },
+        ]}
+        initialAspect={{ w: 4, h: 3 }}
+        onClose={() => {
+          setPropPhotoCropSrc(null);
+          setPropPhotoCropIndex(null);
+        }}
+        onApplyCrop={async (croppedUrl) => {
+          const index = propPhotoCropIndex;
+          setPropPhotoCropSrc(null);
+          setPropPhotoCropIndex(null);
+          if (index !== null) {
+            const url = await uploadDataUrl(croppedUrl, tenantId, 'properties');
+            setPropFotos((prev) => prev.map((f, idx) => (idx === index ? url : f)));
+          }
+        }}
+      />
+
+      {/* Corretor (Team Roster) Photo Cropper Popup */}
+      <LogoCropModal
+        imageSrc={corCropSrc}
+        title="Ajustar e Enquadrar Foto do Corretor"
+        aspectRatios={[
+          { label: 'Quadrado (1:1)', w: 1, h: 1 },
+          { label: 'Retrato (4:5)', w: 4, h: 5 },
+        ]}
+        initialAspect={{ w: 1, h: 1 }}
+        onClose={() => setCorCropSrc(null)}
+        onApplyCrop={async (croppedUrl) => {
+          setCorCropSrc(null);
+          const url = await uploadDataUrl(croppedUrl, tenantId, 'corretores');
+          setCorFoto(url);
+        }}
+      />
+
+      {/* Per-Property Corretor Photo Cropper Popup */}
+      <LogoCropModal
+        imageSrc={propCorretorCropSrc}
+        title="Ajustar e Enquadrar Foto do Corretor"
+        aspectRatios={[
+          { label: 'Quadrado (1:1)', w: 1, h: 1 },
+          { label: 'Retrato (4:5)', w: 4, h: 5 },
+        ]}
+        initialAspect={{ w: 1, h: 1 }}
+        onClose={() => setPropCorretorCropSrc(null)}
+        onApplyCrop={async (croppedUrl) => {
+          setPropCorretorCropSrc(null);
+          const url = await uploadDataUrl(croppedUrl, tenantId, 'corretores');
+          setPropCorretorFoto(url);
+        }}
+      />
+
     </>
   );
 };
