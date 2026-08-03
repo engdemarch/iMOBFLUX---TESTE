@@ -76,6 +76,15 @@ export default function Home() {
     return () => subscription.subscription.unsubscribe();
   }, [loadTenantData]);
 
+  // Login feito em /signup (domínio raiz) redireciona pra cá com ?panel=1
+  // pra abrir direto no painel do corretor em vez do site público.
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get('panel') === '1') {
+      setBrokerModalOpen(true);
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, []);
+
   // Aggregate cities for search filter
   const availableCities = Array.from(
     new Set(properties.map(p => p.cidade).filter(Boolean))

@@ -43,7 +43,9 @@ export default function SignupPage() {
 
   const redirectToTenant = (tenantSlug: string) => {
     const port = window.location.port ? `:${window.location.port}` : '';
-    window.location.href = `${window.location.protocol}//${tenantSlug}.${rootDomain}${port}`;
+    // ?panel=1: abre direto no painel do corretor em vez do site público —
+    // ver app/page.tsx, que detecta esse parâmetro e chama setBrokerModalOpen.
+    window.location.href = `${window.location.protocol}//${tenantSlug}.${rootDomain}${port}/?panel=1`;
   };
 
   // Depois de obter uma sessão (login ou cadastro), decide pra onde mandar o
