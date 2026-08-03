@@ -34,7 +34,7 @@ export const BrokerPresentation: React.FC<BrokerPresentationProps> = ({ config }
           <div className="lg:col-span-5 relative">
             <div className="relative mx-auto max-w-[420px] lg:max-w-none">
               {/* Decorative Frame Backing */}
-              <div className="absolute -top-4 -left-4 w-full h-full border-2 border-[var(--t-primary)] rounded-[2px] pointer-events-none hidden sm:block" />
+              <div className="absolute -top-4 -left-4 w-full h-full border-2 border-[#0F3D5C] rounded-[2px] pointer-events-none hidden sm:block" />
               
               {/* Image Box */}
               <div className="relative bg-[#F2F4F6] border border-[#DEE2E7] rounded-[2px] overflow-hidden shadow-lg aspect-[4/5] max-h-[520px]">
@@ -45,7 +45,7 @@ export const BrokerPresentation: React.FC<BrokerPresentationProps> = ({ config }
                     className="w-full h-full object-cover object-top"
                   />
                 ) : (
-                  <div className="w-full h-full flex flex-col items-center justify-center bg-[var(--t-primary)] text-white p-6 text-center">
+                  <div className="w-full h-full flex flex-col items-center justify-center bg-[#0F3D5C] text-white p-6 text-center">
                     {isImobiliaria ? (
                       <Building2 className="w-20 h-20 mb-3 opacity-80" />
                     ) : (
@@ -77,7 +77,7 @@ export const BrokerPresentation: React.FC<BrokerPresentationProps> = ({ config }
 
               {/* Stat Badge Overlay */}
               {(config.anosExperiencia || config.imoveisNegociados) && (
-                <div className="absolute -bottom-6 -right-2 sm:-right-6 bg-[var(--t-primary)] text-white p-4 sm:p-5 rounded-[2px] shadow-xl border border-white/20 max-w-[200px]">
+                <div className="absolute -bottom-6 -right-2 sm:-right-6 bg-[#0F3D5C] text-white p-4 sm:p-5 rounded-[2px] shadow-xl border border-white/20 max-w-[200px]">
                   <div className="flex items-center gap-2 mb-1">
                     <Award className="w-5 h-5 text-[#F59E0B]" />
                     <span className="text-lg font-bold">{config.anosExperiencia || 'Mercado'}</span>
@@ -93,11 +93,11 @@ export const BrokerPresentation: React.FC<BrokerPresentationProps> = ({ config }
           {/* Right Column: Text & Content */}
           <div className="lg:col-span-7 space-y-6">
             <div>
-              <div className="text-xs font-semibold tracking-[0.12em] uppercase text-[var(--t-primary)] mb-2 flex items-center gap-1.5">
+              <div className="text-xs font-semibold tracking-[0.12em] uppercase text-[#0F3D5C] mb-2 flex items-center gap-1.5">
                 {isImobiliaria ? (
-                  <Building2 className="w-4 h-4 text-[var(--t-primary)]" />
+                  <Building2 className="w-4 h-4 text-[#0F3D5C]" />
                 ) : (
-                  <UserCheck className="w-4 h-4 text-[var(--t-primary)]" />
+                  <UserCheck className="w-4 h-4 text-[#0F3D5C]" />
                 )}
                 <span>{isImobiliaria ? 'Apresentação da Imobiliária' : 'Apresentação Profissional'}</span>
               </div>
@@ -118,19 +118,19 @@ export const BrokerPresentation: React.FC<BrokerPresentationProps> = ({ config }
             {/* Key Service Highlights */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-2">
               <div className="flex items-center gap-2.5 p-3 bg-[#F8F9FA] border border-[#DEE2E7] rounded-[2px]">
-                <CheckCircle2 className="w-4 h-4 text-[var(--t-primary)] shrink-0" />
+                <CheckCircle2 className="w-4 h-4 text-[#0F3D5C] shrink-0" />
                 <span className="text-xs font-semibold text-[#15263A]">Avaliação Real e Precisa de Mercado</span>
               </div>
               <div className="flex items-center gap-2.5 p-3 bg-[#F8F9FA] border border-[#DEE2E7] rounded-[2px]">
-                <CheckCircle2 className="w-4 h-4 text-[var(--t-primary)] shrink-0" />
+                <CheckCircle2 className="w-4 h-4 text-[#0F3D5C] shrink-0" />
                 <span className="text-xs font-semibold text-[#15263A]">Assessoria em Financiamento Habitacional</span>
               </div>
               <div className="flex items-center gap-2.5 p-3 bg-[#F8F9FA] border border-[#DEE2E7] rounded-[2px]">
-                <CheckCircle2 className="w-4 h-4 text-[var(--t-primary)] shrink-0" />
+                <CheckCircle2 className="w-4 h-4 text-[#0F3D5C] shrink-0" />
                 <span className="text-xs font-semibold text-[#15263A]">Segurança Jurídica & Cartorária</span>
               </div>
               <div className="flex items-center gap-2.5 p-3 bg-[#F8F9FA] border border-[#DEE2E7] rounded-[2px]">
-                <CheckCircle2 className="w-4 h-4 text-[var(--t-primary)] shrink-0" />
+                <CheckCircle2 className="w-4 h-4 text-[#0F3D5C] shrink-0" />
                 <span className="text-xs font-semibold text-[#15263A]">Atendimento Exclusivo Personalizado</span>
               </div>
             </div>
@@ -154,7 +154,7 @@ export const BrokerPresentation: React.FC<BrokerPresentationProps> = ({ config }
                   href={`tel:${config.telefone.replace(/\D/g, '')}`}
                   className="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-[#F2F4F6] hover:bg-[#DEE2E7] text-[#15263A] text-xs font-bold uppercase tracking-wider rounded-[2px] transition-colors border border-[#DEE2E7]"
                 >
-                  <Phone className="w-4 h-4 text-[var(--t-primary)]" />
+                  <Phone className="w-4 h-4 text-[#0F3D5C]" />
                   <span>Ligar: {config.telefone}</span>
                 </a>
               )}

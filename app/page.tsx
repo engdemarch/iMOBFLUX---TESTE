@@ -16,7 +16,6 @@ import {
   saveCorretores
 } from '@/lib/db';
 import { supabase } from '@/lib/supabase/client';
-import { getTemplate } from '@/lib/templates';
 
 import { SiteUnavailable } from '@/components/SiteUnavailable';
 import { Header } from '@/components/Header';
@@ -29,11 +28,6 @@ import { Testimonials } from '@/components/Testimonials';
 import { LocationMap } from '@/components/LocationMap';
 import { CtaBanner } from '@/components/CtaBanner';
 import { Footer } from '@/components/Footer';
-import { HeaderModerno } from '@/components/templates/moderno/HeaderModerno';
-import { HeroModerno } from '@/components/templates/moderno/HeroModerno';
-import { PropertyCatalogModerno } from '@/components/templates/moderno/PropertyCatalogModerno';
-import { CtaBannerModerno } from '@/components/templates/moderno/CtaBannerModerno';
-import { FooterModerno } from '@/components/templates/moderno/FooterModerno';
 import { PropertyDetailModal } from '@/components/PropertyDetailModal';
 import { BrokerFab } from '@/components/BrokerFab';
 import { BrokerModal } from '@/components/BrokerModal';
@@ -110,33 +104,20 @@ export default function Home() {
   const isBlocked = tenantId !== null && tenantStatus !== null &&
     ['past_due', 'canceled', 'suspended'].includes(tenantStatus);
 
-  // Template escolhido no cadastro (config.template) decide qual conjunto de
-  // componentes visuais renderiza — Header/Hero/Catálogo/CTA/Footer trocam
-  // por completo, as seções do meio (busca, como funciona, sobre, depoimentos,
-  // mapa, modal de detalhe, fab) são compartilhadas e seguem a cor do template
-  // via --t-primary/--t-primary-dark.
-  const template = getTemplate(config.template);
-  const isModerno = template.id === 'moderno';
-  const themeStyle = {
-    '--t-primary': template.primary,
-    '--t-primary-dark': template.primaryDark
-  } as React.CSSProperties;
-
   return (
-    <div className="min-h-screen flex flex-col font-sans" style={themeStyle}>
+    <div className="min-h-screen flex flex-col font-sans">
       {isBlocked ? <SiteUnavailable /> : (
       <>
       {/* Header */}
-      {isModerno ? (
-        <HeaderModerno config={config} onOpenBrokerModal={() => setBrokerModalOpen(true)} />
-      ) : (
-        <Header config={config} onOpenBrokerModal={() => setBrokerModalOpen(true)} />
-      )}
+      <Header
+        config={config}
+        onOpenBrokerModal={() => setBrokerModalOpen(true)}
+      />
 
       {/* Main Content */}
       <main className="flex-1">
         {/* Hero Section */}
-        {isModerno ? <HeroModerno config={config} /> : <Hero config={config} />}
+        <Hero config={config} />
 
         {/* Search / Filter Bar */}
         <SearchBar
@@ -147,19 +128,11 @@ export default function Home() {
         />
 
         {/* Property Catalog Section */}
-        {isModerno ? (
-          <PropertyCatalogModerno
-            properties={properties}
-            filters={filters}
-            onSelectProperty={(p) => setSelectedProperty(p)}
-          />
-        ) : (
-          <PropertyCatalog
-            properties={properties}
-            filters={filters}
-            onSelectProperty={(p) => setSelectedProperty(p)}
-          />
-        )}
+        <PropertyCatalog
+          properties={properties}
+          filters={filters}
+          onSelectProperty={(p) => setSelectedProperty(p)}
+        />
 
         {/* Process Section */}
         <HowItWorks />
@@ -174,15 +147,14 @@ export default function Home() {
         <LocationMap config={config} />
 
         {/* CTA Anuncie Section */}
-        {isModerno ? <CtaBannerModerno config={config} /> : <CtaBanner config={config} />}
+        <CtaBanner config={config} />
       </main>
 
       {/* Footer */}
-      {isModerno ? (
-        <FooterModerno config={config} onOpenBrokerModal={() => setBrokerModalOpen(true)} />
-      ) : (
-        <Footer config={config} onOpenBrokerModal={() => setBrokerModalOpen(true)} />
-      )}
+      <Footer
+        config={config}
+        onOpenBrokerModal={() => setBrokerModalOpen(true)}
+      />
       </>
       )}
 

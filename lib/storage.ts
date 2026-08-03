@@ -37,7 +37,6 @@ export const DEMO_CORRETORES: Corretor[] = [
 ];
 
 export const DEFAULT_CONFIG: SiteConfig = {
-  template: "classico",
   nome: "ImobFlux",
   subtitulo: "Corretor de Imóveis Licenciado",
   creci: "CRECI 00000-J",

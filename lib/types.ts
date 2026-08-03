@@ -45,7 +45,6 @@ export interface Property {
 }
 
 export interface SiteConfig {
-  template?: 'classico' | 'moderno';
   nome: string;
   subtitulo: string;
   creci: string;

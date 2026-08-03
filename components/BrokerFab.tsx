@@ -39,7 +39,7 @@ export const BrokerFab: React.FC<BrokerFabProps> = ({ config, onClick }) => {
         {showCard && (
           <div className="absolute bottom-16 right-0 w-[290px] sm:w-[320px] bg-white border border-[#DEE2E7] rounded-xl shadow-2xl overflow-hidden animate-fade-in z-50 transition-all">
             {/* Header */}
-            <div className="bg-[var(--t-primary)] text-white p-3.5 flex items-center justify-between">
+            <div className="bg-[#0F3D5C] text-white p-3.5 flex items-center justify-between">
               <div className="flex items-center gap-2.5">
                 <div className="relative w-9 h-9 rounded-full overflow-hidden border border-white/20 bg-[#122234] shrink-0">
                   <img src={avatar} alt={name} className="w-full h-full object-cover" />
@@ -68,7 +68,7 @@ export const BrokerFab: React.FC<BrokerFabProps> = ({ config, onClick }) => {
             <div className="p-4 bg-[#F8F9FA] space-y-3">
               <div className="bg-white border border-[#DEE2E7] rounded-lg p-3 text-xs text-[#15263A] shadow-xs relative leading-relaxed">
                 <p className="font-medium">
-                  👋 <strong className="text-[var(--t-primary)]">Olá! Seja bem-vindo(a)!</strong>
+                  👋 <strong className="text-[#0F3D5C]">Olá! Seja bem-vindo(a)!</strong>
                 </p>
                 <p className="mt-1 text-[#4A5568]">
                   {isImobiliaria

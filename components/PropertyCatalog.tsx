@@ -33,7 +33,7 @@ export const PropertyCatalog: React.FC<PropertyCatalogProps> = ({
       <div className="max-w-[1180px] mx-auto px-5 sm:px-8">
         <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between mb-10 gap-4">
           <div>
-            <div className="text-xs font-semibold tracking-[0.12em] uppercase text-[var(--t-primary)] mb-2">
+            <div className="text-xs font-semibold tracking-[0.12em] uppercase text-[#0F3D5C] mb-2">
               Catálogo
             </div>
             <h2 className="text-2xl sm:text-4xl font-bold text-[#15263A] tracking-tight">

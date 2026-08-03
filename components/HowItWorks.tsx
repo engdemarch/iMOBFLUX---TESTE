@@ -45,8 +45,8 @@ export const HowItWorks: React.FC = () => {
 
         {/* Header Section */}
         <div className="max-w-3xl mb-14">
-          <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#EAF0F6] border border-[#CBD5E1] text-[var(--t-primary)] text-[11px] font-bold uppercase tracking-widest rounded-[2px] mb-3">
-            <span className="w-2 h-2 rounded-full bg-[var(--t-primary)]" />
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#EAF0F6] border border-[#CBD5E1] text-[#0F3D5C] text-[11px] font-bold uppercase tracking-widest rounded-[2px] mb-3">
+            <span className="w-2 h-2 rounded-full bg-[#0F3D5C]" />
             Experiência de Compra & Agenciamento
           </div>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-[#15263A] tracking-tight leading-tight">
@@ -64,7 +64,7 @@ export const HowItWorks: React.FC = () => {
             return (
               <div
                 key={index}
-                className="group relative bg-white border border-[#DEE2E7] rounded-[2px] p-6 sm:p-7 shadow-xs hover:shadow-md hover:border-[var(--t-primary)]/40 transition-all"
+                className="group relative bg-white border border-[#DEE2E7] rounded-[2px] p-6 sm:p-7 shadow-xs hover:shadow-md hover:border-[#0F3D5C]/40 transition-all"
               >
                 {/* Big background step number */}
                 <span className="pointer-events-none absolute top-4 right-5 font-['Space_Grotesk'] text-5xl font-extrabold text-[#EAF0F6] group-hover:text-[#F2F4F6] transition-colors select-none">
@@ -72,7 +72,7 @@ export const HowItWorks: React.FC = () => {
                 </span>
 
                 <div className="relative">
-                  <span className="inline-flex items-center justify-center w-11 h-11 bg-[var(--t-primary)] text-white rounded-[2px] shadow-sm">
+                  <span className="inline-flex items-center justify-center w-11 h-11 bg-[#0F3D5C] text-white rounded-[2px] shadow-sm">
                     <IconComp className="w-5 h-5" />
                   </span>
 
@@ -88,7 +88,7 @@ export const HowItWorks: React.FC = () => {
                     {step.highlights.map((h, idx) => (
                       <span
                         key={idx}
-                        className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-[var(--t-primary)] bg-[#F8FAFC] border border-[#E2E8F0] px-2.5 py-1 rounded-[2px]"
+                        className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-[#0F3D5C] bg-[#F8FAFC] border border-[#E2E8F0] px-2.5 py-1 rounded-[2px]"
                       >
                         <CheckCircle2 className="w-3 h-3 text-[#25D366] shrink-0" />
                         {h}

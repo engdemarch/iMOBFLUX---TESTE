@@ -13,8 +13,6 @@ import {
   Users,
   Zap
 } from 'lucide-react';
-import { TEMPLATES } from '@/lib/templates';
-import { TemplatePreview } from '@/components/templates/TemplatePreview';
 import { LiveDemoShowcase } from '@/components/templates/LiveDemoShowcase';
 
 const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'localhost';
@@ -165,39 +163,6 @@ export default function MarketingPage() {
                 </div>
               );
             })}
-          </div>
-        </div>
-      </section>
-
-      {/* Templates */}
-      <section className="bg-white border-y border-[#DEE2E7]">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-16 sm:py-24">
-          <div className="text-center max-w-xl mx-auto mb-14">
-            <div className="text-xs font-semibold tracking-[0.12em] uppercase text-[#0F3D5C] mb-2">
-              Escolha o visual
-            </div>
-            <h2 className="text-2xl sm:text-3xl font-bold mb-3">Comece com o template que combina com você</h2>
-            <p className="text-sm text-[#68707C]">
-              Você escolhe no cadastro — dá pra trocar depois. Mais opções chegando em breve.
-            </p>
-          </div>
-          <div className="grid sm:grid-cols-2 gap-6 max-w-3xl mx-auto">
-            {TEMPLATES.map((t) => (
-              <div key={t.id} className="text-left">
-                <TemplatePreview template={t} className="shadow-sm" />
-
-                <div className="flex items-center gap-2.5 mt-4">
-                  <span
-                    className="w-6 h-6 rounded-full shrink-0"
-                    style={{ background: `linear-gradient(135deg, ${t.primary}, ${t.primaryDark})` }}
-                  />
-                  <div>
-                    <div className="text-sm font-bold text-[#15263A]">{t.nome}</div>
-                    <div className="text-xs text-[#68707C]">{t.descricao}</div>
-                  </div>
-                </div>
-              </div>
-            ))}
           </div>
         </div>
       </section>

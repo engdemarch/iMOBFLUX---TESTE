@@ -105,7 +105,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
         <button
           type="button"
           onClick={onSearch}
-          className="col-span-1 sm:col-span-2 md:col-span-4 lg:col-span-1 flex items-center justify-center gap-2 px-8 py-4 sm:py-5 bg-[#15263A] hover:bg-[var(--t-primary)] text-[#F2F4F6] text-xs sm:text-sm font-semibold tracking-[0.06em] uppercase transition-colors border-none"
+          className="col-span-1 sm:col-span-2 md:col-span-4 lg:col-span-1 flex items-center justify-center gap-2 px-8 py-4 sm:py-5 bg-[#15263A] hover:bg-[#0F3D5C] text-[#F2F4F6] text-xs sm:text-sm font-semibold tracking-[0.06em] uppercase transition-colors border-none"
         >
           <Search className="w-4 h-4" />
           <span>Buscar imóveis</span>
