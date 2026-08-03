@@ -56,7 +56,7 @@ export function LiveDemoShowcase() {
           src={DEMO_URL}
           title="Site demo do ImobFlux"
           loading="lazy"
-          className={`w-full bg-white transition-all duration-300 ${viewport === 'desktop' ? 'h-[640px]' : 'h-[720px]'}`}
+          className={`w-full bg-white transition-all duration-300 ${viewport === 'desktop' ? 'h-[560px]' : 'h-[620px]'}`}
         />
       </div>
       <p className="text-center text-xs text-[#68707C] mt-4">
