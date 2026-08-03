@@ -1,6 +1,6 @@
 import Stripe from 'stripe';
 import { getStripe } from '@/lib/stripe';
-import { supabaseAdmin } from '@/lib/supabase/admin';
+import { getSupabaseAdmin } from '@/lib/supabase/admin';
 import { DEFAULT_CONFIG } from '@/lib/storage';
 
 export const runtime = 'nodejs';
@@ -67,14 +67,14 @@ export async function POST(req: Request) {
         config: { ...DEFAULT_CONFIG, nome: businessName || DEFAULT_CONFIG.nome }
       };
 
-      const { error } = await supabaseAdmin
+      const { error } = await getSupabaseAdmin()
         .from('tenants')
         .upsert(row, { onConflict: 'owner_user_id', ignoreDuplicates: true });
 
       if (error?.code === '23505') {
         // Slug tomado por uma corrida rara entre a validação e o pagamento —
         // quem já pagou não pode ficar sem site, então cai pra um slug com sufixo.
-        await supabaseAdmin.from('tenants').insert({
+        await getSupabaseAdmin().from('tenants').insert({
           ...row,
           slug: `${slug}-${(session.subscription as string).slice(-6)}`
         });
@@ -94,7 +94,7 @@ export async function POST(req: Request) {
       // Sem erro se o tenant ainda não existir (evento chegou antes do
       // checkout.session.completed terminar de processar) — checkout.session.completed
       // não depende deste handler, então a ordem aqui é segura de qualquer forma.
-      const { error } = await supabaseAdmin
+      const { error } = await getSupabaseAdmin()
         .from('tenants')
         .update({
           status,

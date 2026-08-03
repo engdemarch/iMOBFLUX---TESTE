@@ -1,5 +1,5 @@
 import { getStripe } from '@/lib/stripe';
-import { supabaseAdmin } from '@/lib/supabase/admin';
+import { getSupabaseAdmin } from '@/lib/supabase/admin';
 import { getUserFromRequest } from '@/lib/supabase/serverAuth';
 
 export const runtime = 'nodejs';
@@ -10,7 +10,7 @@ export async function POST(req: Request) {
     return Response.json({ error: 'Não autenticado.' }, { status: 401 });
   }
 
-  const { data: tenant } = await supabaseAdmin
+  const { data: tenant } = await getSupabaseAdmin()
     .from('tenants')
     .select('billing_customer_id')
     .eq('owner_user_id', user.id)

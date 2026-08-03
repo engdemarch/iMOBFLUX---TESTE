@@ -1,5 +1,5 @@
 import { getStripe } from '@/lib/stripe';
-import { supabaseAdmin } from '@/lib/supabase/admin';
+import { getSupabaseAdmin } from '@/lib/supabase/admin';
 import { getUserFromRequest } from '@/lib/supabase/serverAuth';
 import { isSlugFormatValid, isSlugReserved } from '@/lib/host';
 
@@ -23,7 +23,7 @@ export async function POST(req: Request) {
   }
 
   // Um usuário só pode ter um tenant.
-  const { data: existingOwnerTenant } = await supabaseAdmin
+  const { data: existingOwnerTenant } = await getSupabaseAdmin()
     .from('tenants')
     .select('id, slug')
     .eq('owner_user_id', user.id)
@@ -36,7 +36,7 @@ export async function POST(req: Request) {
   }
 
   // Revalida o slug no servidor (o front já checou, mas isso é a fonte de verdade).
-  const { data: existingSlug } = await supabaseAdmin
+  const { data: existingSlug } = await getSupabaseAdmin()
     .from('tenants')
     .select('id')
     .eq('slug', slug)
