@@ -134,7 +134,7 @@ export default function MarketingPage() {
       </section>
 
       {/* Demo ao vivo */}
-      <section className="max-w-6xl mx-auto px-4 sm:px-6 pb-20 sm:pb-28">
+      <section className="max-w-[1440px] mx-auto px-4 sm:px-6 pb-20 sm:pb-28">
         <LiveDemoShowcase />
       </section>
 
