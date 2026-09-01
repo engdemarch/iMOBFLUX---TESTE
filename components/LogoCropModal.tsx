@@ -154,7 +154,7 @@ export const LogoCropModal: React.FC<LogoCropModalProps> = ({
   if (!imageSrc) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-[#122234]/75 backdrop-blur-sm flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 bg-[#122234]/75 backdrop-blur-sm flex items-start justify-center overflow-y-auto p-4 sm:p-6">
       <div className="bg-[#FFFFFF] max-w-[520px] w-full p-6 sm:p-8 rounded-[2px] shadow-2xl relative border border-[#DEE2E7]">
         <button
           onClick={onClose}
@@ -204,6 +204,7 @@ export const LogoCropModal: React.FC<LogoCropModalProps> = ({
             src={imageSrc}
             alt="Crop target"
             draggable={false}
+            crossOrigin="anonymous"
             style={{
               position: 'absolute',
               left: 0,
