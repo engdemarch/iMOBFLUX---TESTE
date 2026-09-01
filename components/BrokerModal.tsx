@@ -740,7 +740,7 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
       telefone: cfgTelefone.trim() || '(48) 99999-0000',
       whats: cfgWhats.trim().replace(/\D/g, '') || '5548999990000',
       email: cfgEmail.trim() || 'contato@corretor.com.br',
-      endereco: cfgEndereco.trim() || 'Rua Exemplo, 100 — Centro, Criciúma/SC',
+      endereco: cfgEndereco.trim() || 'Rua Exemplo, 100 — Centro',
       enderecoAtendimento: cfgEnderecoAtendimento.trim() || cfgEndereco.trim(),
       mostrarMapa: cfgMostrarMapa,
       googleMapsEmbedUrl: cfgGoogleMapsEmbedUrl.trim(),
@@ -2186,7 +2186,7 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
                             value={cfgNome}
                             onChange={(e) => setCfgNome(e.target.value)}
                             required
-                            placeholder={cfgTipoPerfil === 'imobiliaria' ? 'Ex: Imobiliária Criciúma' : 'Ex: Alef Hansen'}
+                            placeholder={cfgTipoPerfil === 'imobiliaria' ? 'Ex: Imobiliária Silva' : 'Ex: Alef Hansen'}
                             className="w-full px-3.5 py-2.5 bg-[#F2F4F6] border border-[#DEE2E7] rounded-[2px] text-sm focus:outline-none focus:bg-white focus:border-[#0F3D5C]"
                           />
                         </div>
@@ -2412,7 +2412,7 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
                             type="text"
                             value={cfgEnderecoAtendimento}
                             onChange={(e) => setCfgEnderecoAtendimento(e.target.value)}
-                            placeholder="Ex: Av. Centenário, 1500 — Centro, Criciúma/SC"
+                            placeholder="Ex: Av. Central, 1500 — Centro"
                             className="w-full px-3.5 py-2 bg-white border border-[#DEE2E7] rounded-[2px] text-sm focus:outline-none focus:border-[#0F3D5C]"
                           />
                           <p className="text-[11px] text-[#68707C] mt-1">

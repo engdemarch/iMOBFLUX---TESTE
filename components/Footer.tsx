@@ -42,7 +42,7 @@ export const Footer: React.FC<FooterProps> = ({ config, onOpenBrokerModal }) => 
               )}
             </div>
             <p className="text-sm text-[#B5B2A6] leading-relaxed">
-              Corretor de imóveis atuando em Criciúma e região, com atendimento próximo do início ao fim do negócio.
+              Atendimento próximo do início ao fim do negócio.
             </p>
           </div>
 
@@ -64,7 +64,7 @@ export const Footer: React.FC<FooterProps> = ({ config, onOpenBrokerModal }) => 
               {config.email || 'contato@alefhansen.com.br'}
             </a>
             <p className="text-sm text-[#B5B2A6] leading-snug">
-              {config.endereco || 'Rua Exemplo, 100 — Centro, Criciúma/SC'}
+              {config.endereco || 'Rua Exemplo, 100 — Centro'}
             </p>
           </div>
 

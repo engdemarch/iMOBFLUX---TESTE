@@ -2,6 +2,7 @@ import { getStripe } from '@/lib/stripe';
 import { getSupabaseAdmin } from '@/lib/supabase/admin';
 import { getUserFromRequest } from '@/lib/supabase/serverAuth';
 import { isSlugFormatValid, isSlugReserved } from '@/lib/host';
+import { isValidCpf } from '@/lib/brasil';
 
 export const runtime = 'nodejs';
 
@@ -14,12 +15,16 @@ export async function POST(req: Request) {
   const body = await req.json().catch(() => null);
   const slug = (body?.slug ?? '').trim().toLowerCase();
   const businessName = (body?.businessName ?? '').trim();
+  const cpf = (body?.cpf ?? '').replace(/\D/g, '');
 
   if (!isSlugFormatValid(slug)) {
     return Response.json({ error: 'Endereço inválido.' }, { status: 400 });
   }
   if (isSlugReserved(slug)) {
     return Response.json({ error: 'Esse endereço não está disponível.' }, { status: 400 });
+  }
+  if (!isValidCpf(cpf)) {
+    return Response.json({ error: 'CPF inválido.' }, { status: 400 });
   }
 
   // Um usuário só pode ter um tenant.
@@ -59,7 +64,8 @@ export async function POST(req: Request) {
     metadata: {
       supabase_user_id: user.id,
       slug,
-      business_name: businessName
+      business_name: businessName,
+      cpf
     }
   });
 

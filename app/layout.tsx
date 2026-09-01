@@ -3,7 +3,7 @@ import './globals.css';
 
 export const metadata: Metadata = {
   title: 'ImobFlux',
-  description: 'Catálogo de imóveis em Criciúma e região · SC. Casas, apartamentos, terrenos e salas comerciais.',
+  description: 'Catálogo de imóveis: casas, apartamentos, terrenos e salas comerciais.',
 };
 
 export default function RootLayout({

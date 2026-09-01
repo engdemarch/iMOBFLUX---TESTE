@@ -47,6 +47,7 @@ export async function POST(req: Request) {
       const supabaseUserId = session.metadata?.supabase_user_id;
       const slug = session.metadata?.slug;
       const businessName = session.metadata?.business_name;
+      const cpf = session.metadata?.cpf;
 
       if (!supabaseUserId || !slug || !session.subscription || !session.customer) {
         console.error('checkout.session.completed sem metadata esperada:', session.id);
@@ -64,6 +65,7 @@ export async function POST(req: Request) {
         billing_provider: 'stripe',
         billing_customer_id: session.customer as string,
         billing_subscription_id: session.subscription as string,
+        cpf: cpf || null,
         config: { ...DEFAULT_CONFIG, nome: businessName || DEFAULT_CONFIG.nome }
       };
 

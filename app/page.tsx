@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
 import { Property, SiteConfig, Testimonial, Corretor, FilterState } from '@/lib/types';
-import { DEFAULT_CONFIG, DEMO_PROPERTIES, DEMO_TESTIMONIALS, DEMO_CORRETORES } from '@/lib/storage';
+import { DEFAULT_CONFIG } from '@/lib/storage';
 import {
   resolveTenantId,
   getConfig,
@@ -36,9 +36,9 @@ export default function Home() {
   const [tenantId, setTenantId] = useState<string | null>(null);
   const [tenantStatus, setTenantStatus] = useState<string | null>(null);
   const [config, setConfig] = useState<SiteConfig>(DEFAULT_CONFIG);
-  const [properties, setProperties] = useState<Property[]>(DEMO_PROPERTIES);
-  const [testimonials, setTestimonials] = useState<Testimonial[]>(DEMO_TESTIMONIALS);
-  const [corretores, setCorretores] = useState<Corretor[]>(DEMO_CORRETORES);
+  const [properties, setProperties] = useState<Property[]>([]);
+  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
+  const [corretores, setCorretores] = useState<Corretor[]>([]);
 
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
   const [brokerModalOpen, setBrokerModalOpen] = useState(false);

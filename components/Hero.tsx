@@ -45,9 +45,6 @@ export const Hero: React.FC<HeroProps> = ({ config }) => {
       {/* Dark Gradient Overlay */}
       <div className="absolute inset-0 z-20 flex flex-col justify-end pb-20 sm:pb-24 bg-gradient-to-b from-black/20 via-black/40 to-black/75">
         <div className="max-w-[1180px] w-full mx-auto px-5 sm:px-8">
-          <div className="text-[#E7DCC0] text-xs sm:text-sm tracking-[0.14em] uppercase font-semibold mb-4 sm:mb-5">
-            Criciúma e região · SC
-          </div>
           <h1 className="text-[#FBF9F3] text-4xl sm:text-6xl lg:text-[72px] font-bold leading-[1.04] max-w-[840px] tracking-tight">
             O imóvel certo<br />começa por uma<br />boa pergunta.
           </h1>

@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import { isSlugFormatValid, isSlugReserved } from '@/lib/host';
 import { PasswordInput } from '@/components/PasswordInput';
+import { formatCpf, isValidCpf } from '@/lib/brasil';
 
 // Fase 3: o cadastro não grava mais o tenant direto do navegador — depois de
 // criar a conta no Supabase Auth, o usuário é enviado pro Checkout do Stripe;
@@ -24,6 +25,7 @@ export default function SignupPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [slug, setSlug] = useState('');
   const [businessName, setBusinessName] = useState('');
+  const [cpf, setCpf] = useState('');
 
   // Login
   const [loginEmail, setLoginEmail] = useState('');
@@ -65,10 +67,11 @@ export default function SignupPage() {
       return true;
     }
 
-    const meta = metadata as { pending_slug?: string; pending_business_name?: string };
+    const meta = metadata as { pending_slug?: string; pending_business_name?: string; pending_cpf?: string };
     if (meta?.pending_slug) {
       setSlug(meta.pending_slug);
       setBusinessName(meta.pending_business_name || '');
+      setCpf(meta.pending_cpf || '');
       setEmail(userEmail || '');
       setResumeMode(true);
       return true;
@@ -108,7 +111,7 @@ export default function SignupPage() {
     const res = await fetch('/api/checkout', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
-      body: JSON.stringify({ slug: normalizedSlug, businessName: businessName.trim() })
+      body: JSON.stringify({ slug: normalizedSlug, businessName: businessName.trim(), cpf: cpf.replace(/\D/g, '') })
     });
     const data = await res.json();
 
@@ -145,6 +148,10 @@ export default function SignupPage() {
       setError('As senhas não coincidem.');
       return;
     }
+    if (!isValidCpf(cpf)) {
+      setError('CPF inválido. Confira os números digitados.');
+      return;
+    }
 
     setLoading(true);
     try {
@@ -161,7 +168,7 @@ export default function SignupPage() {
       const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email: email.trim(),
         password,
-        options: { data: { pending_slug: normalizedSlug, pending_business_name: businessName.trim() } }
+        options: { data: { pending_slug: normalizedSlug, pending_business_name: businessName.trim(), pending_cpf: cpf.replace(/\D/g, '') } }
       });
 
       if (signUpError) {
@@ -366,14 +373,30 @@ export default function SignupPage() {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold tracking-wider uppercase text-[#68707C] mb-1.5">
-                  Nome do negócio
+                  Nome completo
                 </label>
                 <input
                   type="text"
                   value={businessName}
                   onChange={(e) => setBusinessName(e.target.value)}
-                  placeholder="Ex: João Silva Imóveis"
+                  placeholder="Ex: João Silva"
                   required
+                  className="w-full px-3.5 py-2.5 bg-[#F2F4F6] border border-[#DEE2E7] rounded-[2px] text-sm text-[#15263A] focus:outline-none focus:bg-white focus:border-[#0F3D5C]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold tracking-wider uppercase text-[#68707C] mb-1.5">
+                  CPF
+                </label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={cpf}
+                  onChange={(e) => setCpf(formatCpf(e.target.value))}
+                  placeholder="000.000.000-00"
+                  required
+                  maxLength={14}
                   className="w-full px-3.5 py-2.5 bg-[#F2F4F6] border border-[#DEE2E7] rounded-[2px] text-sm text-[#15263A] focus:outline-none focus:bg-white focus:border-[#0F3D5C]"
                 />
               </div>
