@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { supabase } from '@/lib/supabase/client';
 import { isSlugFormatValid, isSlugReserved } from '@/lib/host';
 import { PasswordInput } from '@/components/PasswordInput';
@@ -464,6 +465,18 @@ export default function SignupPage() {
 
               <p className="text-[11px] text-[#68707C]">
                 7 dias grátis, depois R$ 97/mês. Cartão solicitado no próximo passo, sem cobrança durante o teste.
+              </p>
+
+              <p className="text-[11px] text-[#68707C]">
+                Ao continuar, você concorda com os{' '}
+                <Link href="/termos" target="_blank" className="text-[#0F3D5C] hover:underline">
+                  Termos de Uso
+                </Link>{' '}
+                e a{' '}
+                <Link href="/privacidade" target="_blank" className="text-[#0F3D5C] hover:underline">
+                  Política de Privacidade
+                </Link>
+                .
               </p>
 
               <button

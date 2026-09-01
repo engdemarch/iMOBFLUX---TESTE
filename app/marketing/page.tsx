@@ -236,6 +236,12 @@ export default function MarketingPage() {
           <Link href="/signup?mode=login" className="hover:text-[#15263A] transition-colors">
             Entrar
           </Link>
+          <Link href="/termos" className="hover:text-[#15263A] transition-colors">
+            Termos de Uso
+          </Link>
+          <Link href="/privacidade" className="hover:text-[#15263A] transition-colors">
+            Privacidade
+          </Link>
         </div>
       </footer>
     </div>
