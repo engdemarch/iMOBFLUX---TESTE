@@ -10,10 +10,11 @@ import { formatCpf, isValidCpf } from '@/lib/brasil';
 // Fase 3: o cadastro não grava mais o tenant direto do navegador — depois de
 // criar a conta no Supabase Auth, o usuário é enviado pro Checkout do Stripe;
 // o tenant só é criado pelo webhook (app/api/stripe/webhook) quando o
-// pagamento (ou início do período de teste) é confirmado. Exige que "Confirm
-// email" esteja desativado nas configurações de Auth do Supabase (Authentication
-// > Providers > Email), senão signUp() não retorna sessão ativa e a chamada a
-// /api/checkout abaixo falha por falta de sessão.
+// pagamento (ou início do período de teste) é confirmado. Se "Confirm email"
+// estiver ativo nas configurações de Auth do Supabase, signUp() não retorna
+// sessão ativa (tratado abaixo) — o link do e-mail de confirmação usa
+// emailRedirectTo para trazer o usuário de volta pra cá, onde routeSession()
+// retoma o cadastro pendente (pending_slug) e segue pro checkout.
 
 type Mode = 'signup' | 'login' | 'forgot';
 
@@ -169,7 +170,10 @@ export default function SignupPage() {
       const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email: email.trim(),
         password,
-        options: { data: { pending_slug: normalizedSlug, pending_business_name: businessName.trim(), pending_cpf: cpf.replace(/\D/g, '') } }
+        options: {
+          data: { pending_slug: normalizedSlug, pending_business_name: businessName.trim(), pending_cpf: cpf.replace(/\D/g, '') },
+          emailRedirectTo: `${window.location.origin}/signup`
+        }
       });
 
       if (signUpError) {
