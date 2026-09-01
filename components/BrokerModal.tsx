@@ -37,6 +37,7 @@ import { resolveOwnerTenantId, getOwnerBillingInfo, OwnerBillingInfo } from '@/l
 import { ESTADOS_BR, fetchEnderecoPorCep, formatCep } from '@/lib/brasil';
 import { LogoCropModal } from './LogoCropModal';
 import { CidadeSelect } from './CidadeSelect';
+import { PasswordInput } from './PasswordInput';
 
 const MESES_PT = [
   'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
@@ -91,6 +92,7 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
   const [forgotEmail, setForgotEmail] = useState('');
   const [forgotSent, setForgotSent] = useState(false);
   const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotError, setForgotError] = useState('');
 
   // Assinatura (Fase 3)
   const [billingInfo, setBillingInfo] = useState<OwnerBillingInfo | null>(null);
@@ -313,12 +315,17 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
 
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
+    setForgotError('');
     setForgotLoading(true);
     try {
       const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'localhost';
       const port = window.location.port ? `:${window.location.port}` : '';
       const redirectTo = `${window.location.protocol}//${rootDomain}${port}/reset-password`;
-      await supabase.auth.resetPasswordForEmail(forgotEmail.trim(), { redirectTo });
+      const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail.trim(), { redirectTo });
+      if (error) {
+        setForgotError('Não foi possível enviar o e-mail de recuperação. Tente novamente em instantes.');
+        return;
+      }
       setForgotSent(true);
     } finally {
       setForgotLoading(false);
@@ -963,8 +970,7 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
                           <label className="block text-xs font-semibold tracking-wider uppercase text-[#68707C] mb-1.5">
                             Senha
                           </label>
-                          <input
-                            type="password"
+                          <PasswordInput
                             value={loginPass}
                             onChange={(e) => setLoginPass(e.target.value)}
                             placeholder="••••••"
@@ -982,7 +988,7 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
                       </form>
                       <button
                         type="button"
-                        onClick={() => { setShowForgotPassword(true); setForgotSent(false); setLoginError(''); }}
+                        onClick={() => { setShowForgotPassword(true); setForgotSent(false); setForgotError(''); setLoginError(''); }}
                         className="mt-4 text-xs text-[#0F3D5C] font-semibold hover:underline"
                       >
                         Esqueci minha senha
@@ -1000,6 +1006,11 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
                           <p className="text-sm text-[#68707C]">
                             Digite o e-mail da sua conta pra receber um link de redefinição de senha.
                           </p>
+                          {forgotError && (
+                            <div className="p-3 text-xs font-medium text-[#A8452F] bg-[#F7EAE6] border border-[#E4C3B9] rounded-[2px]">
+                              {forgotError}
+                            </div>
+                          )}
                           <div>
                             <label className="block text-xs font-semibold tracking-wider uppercase text-[#68707C] mb-1.5">
                               E-mail
@@ -1024,7 +1035,7 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
                       )}
                       <button
                         type="button"
-                        onClick={() => setShowForgotPassword(false)}
+                        onClick={() => { setShowForgotPassword(false); setForgotError(''); }}
                         className="text-xs text-[#0F3D5C] font-semibold hover:underline"
                       >
                         ← Voltar para o login
@@ -3121,8 +3132,7 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
                         <label className="block text-xs font-semibold tracking-wider uppercase text-[#68707C] mb-1.5">
                           Senha Atual
                         </label>
-                        <input
-                          type="password"
+                        <PasswordInput
                           value={credCurrentPass}
                           onChange={(e) => setCredCurrentPass(e.target.value)}
                           required
@@ -3136,8 +3146,7 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
                           <label className="block text-xs font-semibold tracking-wider uppercase text-[#68707C] mb-1.5">
                             Nova Senha
                           </label>
-                          <input
-                            type="password"
+                          <PasswordInput
                             value={credNewPass}
                             onChange={(e) => setCredNewPass(e.target.value)}
                             required
@@ -3151,8 +3160,7 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
                           <label className="block text-xs font-semibold tracking-wider uppercase text-[#68707C] mb-1.5">
                             Confirmar Nova Senha
                           </label>
-                          <input
-                            type="password"
+                          <PasswordInput
                             value={credConfirmPass}
                             onChange={(e) => setCredConfirmPass(e.target.value)}
                             required

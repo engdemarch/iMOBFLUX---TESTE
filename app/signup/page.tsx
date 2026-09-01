@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import { isSlugFormatValid, isSlugReserved } from '@/lib/host';
+import { PasswordInput } from '@/components/PasswordInput';
 
 // Fase 3: o cadastro não grava mais o tenant direto do navegador — depois de
 // criar a conta no Supabase Auth, o usuário é enviado pro Checkout do Stripe;
@@ -207,7 +208,11 @@ export default function SignupPage() {
     try {
       const port = window.location.port ? `:${window.location.port}` : '';
       const redirectTo = `${window.location.protocol}//${rootDomain}${port}/reset-password`;
-      await supabase.auth.resetPasswordForEmail(forgotEmail.trim(), { redirectTo });
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(forgotEmail.trim(), { redirectTo });
+      if (resetError) {
+        setError('Não foi possível enviar o e-mail de recuperação. Tente novamente em instantes.');
+        return;
+      }
       setForgotSent(true);
     } finally {
       setLoading(false);
@@ -323,8 +328,7 @@ export default function SignupPage() {
                 <label className="block text-xs font-semibold tracking-wider uppercase text-[#68707C] mb-1.5">
                   Senha
                 </label>
-                <input
-                  type="password"
+                <PasswordInput
                   value={loginPassword}
                   onChange={(e) => setLoginPassword(e.target.value)}
                   placeholder="••••••"
@@ -411,8 +415,7 @@ export default function SignupPage() {
                 <label className="block text-xs font-semibold tracking-wider uppercase text-[#68707C] mb-1.5">
                   Senha
                 </label>
-                <input
-                  type="password"
+                <PasswordInput
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••"
@@ -426,8 +429,7 @@ export default function SignupPage() {
                 <label className="block text-xs font-semibold tracking-wider uppercase text-[#68707C] mb-1.5">
                   Confirmar senha
                 </label>
-                <input
-                  type="password"
+                <PasswordInput
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="••••••"

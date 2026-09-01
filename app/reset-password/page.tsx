@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase/client';
+import { PasswordInput } from '@/components/PasswordInput';
 
 // Página de destino do link de "esqueci minha senha" (ver resetPasswordForEmail
 // em app/signup/page.tsx e components/BrokerModal.tsx). O supabase-js detecta
@@ -10,6 +11,7 @@ import { supabase } from '@/lib/supabase/client';
 export default function ResetPasswordPage() {
   const [checking, setChecking] = useState(true);
   const [validSession, setValidSession] = useState(false);
+  const [linkErrorMessage, setLinkErrorMessage] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
@@ -20,6 +22,21 @@ export default function ResetPasswordPage() {
   const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'localhost';
 
   useEffect(() => {
+    // Quando o link do Supabase já vem expirado/usado, ele redireciona pra cá
+    // com o erro no hash/query (#error=... ou ?error=...) em vez de criar
+    // sessão — sem checar isso, a página mostrava sempre a mesma mensagem
+    // genérica de "link inválido", mascarando a causa real.
+    const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+    const searchParams = new URLSearchParams(window.location.search);
+    const errorCode = hashParams.get('error_code') || searchParams.get('error_code');
+    const errorDescription = hashParams.get('error_description') || searchParams.get('error_description');
+
+    if (errorCode === 'otp_expired') {
+      setLinkErrorMessage('Esse link de redefinição expirou. Volte pra tela de login e solicite um novo.');
+    } else if (errorDescription) {
+      setLinkErrorMessage(decodeURIComponent(errorDescription.replace(/\+/g, ' ')));
+    }
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       setValidSession(!!session);
       setChecking(false);
@@ -81,7 +98,13 @@ export default function ResetPasswordPage() {
 
         {!validSession ? (
           <p className="text-sm text-[#68707C]">
-            Esse link de redefinição é inválido ou expirou. Volte pra tela de login e solicite um novo.
+            {linkErrorMessage || (
+              <>
+                Esse link de redefinição é inválido ou expirou. Se você pediu a redefinição em outro navegador ou
+                dispositivo, abra o link no mesmo navegador usado para solicitá-lo. Caso contrário, volte pra tela de
+                login e solicite um novo.
+              </>
+            )}
           </p>
         ) : done ? (
           <div className="space-y-4">
@@ -105,8 +128,7 @@ export default function ResetPasswordPage() {
               <label className="block text-xs font-semibold tracking-wider uppercase text-[#68707C] mb-1.5">
                 Nova senha
               </label>
-              <input
-                type="password"
+              <PasswordInput
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••"
@@ -119,8 +141,7 @@ export default function ResetPasswordPage() {
               <label className="block text-xs font-semibold tracking-wider uppercase text-[#68707C] mb-1.5">
                 Confirmar nova senha
               </label>
-              <input
-                type="password"
+              <PasswordInput
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="••••••"
