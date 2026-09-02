@@ -116,14 +116,16 @@ const SHOWCASE_STRIP = [
 
 function BrowserCard({ img, label, meta, className = '' }: { img: string; label: string; meta: string; className?: string }) {
   return (
-    <div className={`shrink-0 rounded-[8px] overflow-hidden shadow-xl border border-[#DEE2E7] bg-white ${className}`}>
-      <div className="h-5 bg-[#F2F4F6] border-b border-[#DEE2E7] flex items-center gap-1 px-2">
-        <span className="w-1.5 h-1.5 rounded-full bg-[#FF5F57]" />
-        <span className="w-1.5 h-1.5 rounded-full bg-[#FEBC2E]" />
-        <span className="w-1.5 h-1.5 rounded-full bg-[#28C840]" />
+    <div
+      className={`shrink-0 rounded-2xl overflow-hidden shadow-[0_20px_40px_-15px_rgba(15,61,92,0.25)] ring-1 ring-black/5 bg-white transition-transform duration-300 hover:-translate-y-1 ${className}`}
+    >
+      <div className="h-6 bg-gradient-to-b from-[#F7F9FB] to-[#EEF2F6] border-b border-[#E5EAF0] flex items-center gap-1.5 px-3">
+        <span className="w-2 h-2 rounded-full bg-[#FF5F57]" />
+        <span className="w-2 h-2 rounded-full bg-[#FEBC2E]" />
+        <span className="w-2 h-2 rounded-full bg-[#28C840]" />
       </div>
       <img src={img} alt="" className="w-full h-20 object-cover" />
-      <div className="px-2.5 py-2 text-left">
+      <div className="px-3 py-2.5 text-left">
         <p className="text-[10px] font-bold text-[#15263A] truncate">{label}</p>
         <p className="text-[9px] text-[#68707C] truncate">{meta}</p>
       </div>
@@ -133,20 +135,20 @@ function BrowserCard({ img, label, meta, className = '' }: { img: string; label:
 
 function PhoneMockup({ className = '' }: { className?: string }) {
   return (
-    <div className={`w-28 xl:w-32 ${className}`}>
-      <div className="rounded-[20px] border-[3px] border-[#0F3D5C] bg-white shadow-2xl overflow-hidden">
-        <div className="relative bg-white" style={{ aspectRatio: '9 / 18.5' }}>
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-10 h-2.5 bg-[#0F3D5C] rounded-b-md z-10" />
+    <div className={`w-28 xl:w-32 transition-transform duration-300 hover:-translate-y-1 ${className}`}>
+      <div className="rounded-[32px] border-[3px] border-[#0B1B2E] bg-[#0B1B2E] shadow-[0_25px_50px_-15px_rgba(15,61,92,0.4)] overflow-hidden p-1">
+        <div className="relative bg-white rounded-[26px] overflow-hidden" style={{ aspectRatio: '9 / 18.5' }}>
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-10 h-3 bg-[#0B1B2E] rounded-b-xl z-10" />
           <div className="pt-4 px-1.5 flex flex-col h-full">
             <p className="text-[7px] font-bold text-[#0F3D5C] mb-1 px-0.5">ImobFlux</p>
             <img
               src="https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=300&q=80"
               alt=""
-              className="w-full h-16 object-cover rounded-[3px]"
+              className="w-full h-16 object-cover rounded-[6px]"
             />
             <p className="text-[6.5px] font-semibold text-[#15263A] mt-1 px-0.5">Apartamento c/ Vista Livre</p>
             <p className="text-[7px] font-bold text-[#0F3D5C] px-0.5">R$ 410.000</p>
-            <div className="mt-auto mb-2 mx-0.5 bg-[#25D366] text-white text-[6px] font-bold text-center py-1 rounded-[3px]">
+            <div className="mt-auto mb-2 mx-0.5 bg-[#25D366] text-white text-[6px] font-bold text-center py-1.5 rounded-full">
               FALAR NO WHATSAPP
             </div>
           </div>
@@ -158,15 +160,15 @@ function PhoneMockup({ className = '' }: { className?: string }) {
 
 function CtaButton({ href, children, variant = 'primary' }: { href: string; children: ReactNode; variant?: 'primary' | 'onDark' }) {
   const base =
-    'inline-flex items-center justify-center gap-2 px-7 py-3.5 text-xs font-bold uppercase tracking-wider rounded-[2px] transition-colors';
+    'group inline-flex items-center justify-center gap-2 px-7 py-3.5 text-sm font-bold rounded-full transition-all duration-200 hover:scale-[1.03] active:scale-[0.98]';
   const styles =
     variant === 'primary'
-      ? 'bg-[#0F3D5C] hover:bg-[#0B2C44] text-white shadow-[0_10px_30px_-10px_rgba(15,61,92,0.6)]'
-      : 'bg-white hover:bg-[#F2F4F6] text-[#0F3D5C]';
+      ? 'bg-gradient-to-b from-[#1A4D73] to-[#0B2C44] hover:from-[#1D5680] hover:to-[#0F3D5C] text-white shadow-[0_12px_30px_-8px_rgba(15,61,92,0.55)]'
+      : 'bg-white hover:bg-[#F2F4F6] text-[#0F3D5C] shadow-[0_12px_30px_-8px_rgba(0,0,0,0.25)]';
   return (
     <Link href={href} className={`${base} ${styles}`}>
       {children}
-      <ArrowRight className="w-4 h-4" />
+      <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5" />
     </Link>
   );
 }
@@ -181,13 +183,13 @@ export default function MarketingPage() {
           <nav className="flex items-center gap-2 sm:gap-3">
             <Link
               href="/signup?mode=login"
-              className="px-3.5 sm:px-4 py-2 text-xs font-semibold uppercase tracking-wider text-[#0F3D5C] hover:text-[#0B2C44] transition-colors"
+              className="px-3.5 sm:px-4 py-2 text-sm font-semibold text-[#0F3D5C] hover:text-[#0B2C44] transition-colors"
             >
               Entrar
             </Link>
             <Link
               href="/signup"
-              className="px-3.5 sm:px-4 py-2.5 bg-[#0F3D5C] hover:bg-[#0B2C44] text-white text-xs font-bold uppercase tracking-wider rounded-[2px] transition-colors"
+              className="px-4 sm:px-5 py-2.5 bg-[#0F3D5C] hover:bg-[#0B2C44] hover:scale-[1.03] active:scale-[0.98] text-white text-sm font-bold rounded-full transition-all duration-200 shadow-[0_8px_20px_-6px_rgba(15,61,92,0.5)]"
             >
               Testar grátis
             </Link>
@@ -296,10 +298,10 @@ export default function MarketingPage() {
               return (
                 <div
                   key={b.title}
-                  className="bg-white border border-[#DEE2E7] p-6 rounded-[8px] hover:border-[#0F3D5C] hover:-translate-y-1 hover:shadow-md transition-all duration-200"
+                  className="group bg-white border border-[#EAEDF1] p-6 rounded-2xl hover:border-transparent hover:-translate-y-1.5 hover:shadow-[0_25px_50px_-20px_rgba(15,61,92,0.35)] transition-all duration-300"
                 >
-                  <div className="inline-flex items-center justify-center w-10 h-10 bg-[#F2F4F6] rounded-full text-[#0F3D5C] mb-4">
-                    <Icon className="w-4.5 h-4.5" />
+                  <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-br from-[#1D5680] to-[#0B2C44] group-hover:from-[#2568A0] group-hover:to-[#0F3D5C] rounded-xl text-white mb-4 shadow-[0_8px_16px_-6px_rgba(15,61,92,0.45)] transition-colors duration-300">
+                    <Icon className="w-5 h-5" />
                   </div>
                   <h3 className="text-sm font-bold text-[#15263A] mb-1.5">{b.title}</h3>
                   <p className="text-xs text-[#68707C] leading-relaxed">{b.text}</p>
@@ -332,14 +334,18 @@ export default function MarketingPage() {
           <div className="text-center max-w-xl mx-auto mb-14">
             <h2 className="text-2xl sm:text-3xl font-bold">Comece em poucos minutos.</h2>
           </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+          <div className="relative grid sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-10 mb-12">
+            <div
+              aria-hidden
+              className="hidden lg:block absolute top-6 left-[12.5%] right-[12.5%] h-px bg-gradient-to-r from-transparent via-[#DEE2E7] to-transparent"
+            />
             {STEPS.map((step) => {
               const Icon = step.icon;
               return (
-                <div key={step.number} className="text-center sm:text-left">
-                  <div className="inline-flex items-center justify-center w-12 h-12 bg-[#0F3D5C] rounded-full text-white mb-4 relative">
+                <div key={step.number} className="relative text-center sm:text-left">
+                  <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-br from-[#1D5680] to-[#0B2C44] rounded-2xl text-white mb-4 relative z-10 shadow-[0_10px_20px_-8px_rgba(15,61,92,0.5)]">
                     <Icon className="w-5 h-5" />
-                    <span className="absolute -top-2 -right-2 w-6 h-6 flex items-center justify-center bg-white border border-[#DEE2E7] rounded-full text-[9px] font-bold text-[#0F3D5C]">
+                    <span className="absolute -top-2.5 -right-2.5 w-6 h-6 flex items-center justify-center bg-white ring-1 ring-[#DEE2E7] rounded-full text-[9px] font-extrabold text-[#0F3D5C] shadow-sm">
                       {step.number}
                     </span>
                   </div>

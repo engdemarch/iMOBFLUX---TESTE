@@ -38,15 +38,15 @@ export function LiveDemoShowcase() {
       </div>
 
       <div
-        className={`mx-auto border border-[#DEE2E7] rounded-[10px] overflow-hidden shadow-xl bg-white transition-all duration-300 ${
+        className={`mx-auto ring-1 ring-black/5 rounded-2xl overflow-hidden shadow-[0_30px_60px_-25px_rgba(15,61,92,0.35)] bg-white transition-all duration-300 ${
           viewport === 'desktop' ? 'w-full' : 'max-w-[420px]'
         }`}
       >
-        <div className="h-11 bg-[#F2F4F6] border-b border-[#DEE2E7] flex items-center gap-3 px-4">
+        <div className="h-11 bg-gradient-to-b from-[#F7F9FB] to-[#EEF2F6] border-b border-[#E5EAF0] flex items-center gap-3 px-4">
           <div className="flex items-center gap-1.5 shrink-0">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#DEE2E7]" />
-            <span className="w-2.5 h-2.5 rounded-full bg-[#DEE2E7]" />
-            <span className="w-2.5 h-2.5 rounded-full bg-[#DEE2E7]" />
+            <span className="w-2.5 h-2.5 rounded-full bg-[#FF5F57]" />
+            <span className="w-2.5 h-2.5 rounded-full bg-[#FEBC2E]" />
+            <span className="w-2.5 h-2.5 rounded-full bg-[#28C840]" />
           </div>
           <div className="flex-1 bg-white border border-[#DEE2E7] rounded-full px-3 py-1.5 text-[11px] text-[#68707C] text-center truncate">
             {DEMO_URL.replace('https://', '')}
