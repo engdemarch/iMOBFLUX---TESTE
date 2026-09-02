@@ -129,7 +129,7 @@ export default function MarketingPage() {
           </a>
         </div>
         <p className="text-[11px] text-[#68707C] mt-4">
-          R$ 97/mês depois do teste grátis. Cancele quando quiser, sem multa.
+          R$ 37,90/mês depois do teste grátis. Cancele quando quiser, sem multa.
         </p>
       </section>
 
@@ -199,7 +199,7 @@ export default function MarketingPage() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-16 sm:py-20 text-center">
           <h2 className="text-2xl sm:text-3xl font-bold mb-3">Comece grátis hoje mesmo</h2>
           <p className="text-sm sm:text-base text-white/75 max-w-md mx-auto mb-8">
-            7 dias de teste completo, sem cobrança. Depois, R$ 97/mês — cancele quando quiser, direto pelo painel.
+            7 dias de teste completo, sem cobrança. Depois, R$ 37,90/mês — cancele quando quiser, direto pelo painel.
           </p>
           <div className="inline-flex flex-col items-center gap-4">
             <Link

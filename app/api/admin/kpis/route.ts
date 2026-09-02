@@ -6,7 +6,7 @@ export const runtime = 'nodejs';
 // Único dono da plataforma por enquanto — sem tabela de admins pra um SaaS
 // de um corretor só operando. Ver lib/adminEmail.ts se isso crescer.
 const ADMIN_EMAIL = 'eng.demarch@gmail.com';
-const MONTHLY_PRICE_BRL = 97;
+const MONTHLY_PRICE_BRL = 37.9;
 
 export async function GET(req: Request) {
   const user = await getUserFromRequest(req);

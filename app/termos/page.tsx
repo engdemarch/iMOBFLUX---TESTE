@@ -47,7 +47,7 @@ export default function TermosPage() {
           <section>
             <h2 className="text-sm font-bold uppercase tracking-wider text-[#0F3D5C] mb-2">3. Assinatura, cobrança e teste grátis</h2>
             <p className="mb-2">
-              O acesso ao ImobFlux é vendido por assinatura mensal recorrente, atualmente R$ 97/mês. Novas contas
+              O acesso ao ImobFlux é vendido por assinatura mensal recorrente, atualmente R$ 37,90/mês. Novas contas
               têm direito a 7 dias de teste gratuito; o cartão informado no cadastro só é cobrado ao fim do período
               de teste, salvo cancelamento anterior.
             </p>

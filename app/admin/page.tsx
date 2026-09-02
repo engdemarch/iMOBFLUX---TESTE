@@ -148,7 +148,7 @@ export default function AdminPage() {
     { label: 'Corretores cadastrados', value: kpis.totalTenants },
     { label: 'Pagando (ativos)', value: kpis.byStatus.active ?? 0 },
     { label: 'Em teste grátis', value: kpis.byStatus.trialing ?? 0 },
-    { label: 'MRR estimado', value: `R$ ${kpis.mrrBrl.toLocaleString('pt-BR')}` },
+    { label: 'MRR estimado', value: `R$ ${kpis.mrrBrl.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` },
     { label: 'Pagamento pendente', value: kpis.byStatus.past_due ?? 0 },
     { label: 'Cancelados/Suspensos', value: (kpis.byStatus.canceled ?? 0) + (kpis.byStatus.suspended ?? 0) },
     { label: 'Trials acabando em 7 dias', value: kpis.trialsEndingSoon },

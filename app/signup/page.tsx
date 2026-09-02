@@ -468,7 +468,7 @@ export default function SignupPage() {
               </div>
 
               <p className="text-[11px] text-[#68707C]">
-                7 dias grátis, depois R$ 97/mês. Cartão solicitado no próximo passo, sem cobrança durante o teste.
+                7 dias grátis, depois R$ 37,90/mês. Cartão solicitado no próximo passo, sem cobrança durante o teste.
               </p>
 
               <p className="text-[11px] text-[#68707C]">
