@@ -69,21 +69,26 @@ const ADVANTAGES = [
   }
 ];
 
+// Mockups de janela de navegador flutuando no hero, no estilo das referências
+// (cartão branco, barra de título com os três pontinhos, imagem do imóvel).
 const FLOATING_CARDS = [
   {
     img: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=400&q=80',
     label: 'Casa de Condomínio',
-    className: 'hidden 2xl:block left-0 top-10 -rotate-6'
+    meta: '4 quartos · R$ 1.280.000',
+    className: 'hidden 2xl:block left-0 top-6 -rotate-6'
   },
   {
     img: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=400&q=80',
     label: 'Apartamento',
-    className: 'hidden 2xl:block right-0 top-6 rotate-6'
+    meta: '2 quartos · R$ 410.000',
+    className: 'hidden 2xl:block right-0 top-2 rotate-6'
   },
   {
     img: 'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?auto=format&fit=crop&w=400&q=80',
     label: 'Casa Térrea',
-    className: 'hidden 2xl:block left-8 bottom-10 rotate-3'
+    meta: '3 quartos · R$ 620.000',
+    className: 'hidden 2xl:block left-10 bottom-4 rotate-3'
   }
 ];
 
@@ -128,14 +133,42 @@ export default function MarketingPage() {
           {FLOATING_CARDS.map((card) => (
             <div
               key={card.label}
-              className={`absolute w-36 border border-white/15 rounded-[6px] overflow-hidden shadow-2xl bg-white/5 backdrop-blur-sm z-0 ${card.className}`}
+              className={`absolute w-40 rounded-[8px] overflow-hidden shadow-2xl bg-white z-0 ${card.className}`}
             >
+              <div className="h-5 bg-[#F2F4F6] border-b border-[#DEE2E7] flex items-center gap-1 px-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#FF5F57]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#FEBC2E]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#28C840]" />
+              </div>
               <img src={card.img} alt="" className="w-full h-20 object-cover" />
               <div className="px-2.5 py-2">
-                <p className="text-[10px] font-semibold text-white/90 truncate">{card.label}</p>
+                <p className="text-[10px] font-bold text-[#15263A] truncate">{card.label}</p>
+                <p className="text-[9px] text-[#68707C] truncate">{card.meta}</p>
               </div>
             </div>
           ))}
+
+          {/* Mockup de celular flutuando, mostrando a tela do produto */}
+          <div className="hidden 2xl:block absolute right-6 bottom-0 w-32 rotate-3 z-0">
+            <div className="rounded-[20px] border-[3px] border-[#0B1B2E] bg-[#081527] shadow-2xl overflow-hidden">
+              <div className="relative bg-white" style={{ aspectRatio: '9 / 18.5' }}>
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-10 h-2.5 bg-[#0B1B2E] rounded-b-md z-10" />
+                <div className="pt-4 px-1.5 flex flex-col h-full">
+                  <p className="text-[7px] font-bold text-[#0F3D5C] mb-1 px-0.5">ImobFlux</p>
+                  <img
+                    src="https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=300&q=80"
+                    alt=""
+                    className="w-full h-16 object-cover rounded-[3px]"
+                  />
+                  <p className="text-[6.5px] font-semibold text-[#15263A] mt-1 px-0.5">Apartamento c/ Vista Livre</p>
+                  <p className="text-[7px] font-bold text-[#0F3D5C] px-0.5">R$ 410.000</p>
+                  <div className="mt-auto mb-2 mx-0.5 bg-[#25D366] text-white text-[6px] font-bold text-center py-1 rounded-[3px]">
+                    FALAR NO WHATSAPP
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
 
           <div className="relative z-10 max-w-3xl mx-auto">
             <div className="inline-flex items-center gap-1.5 px-3 py-1.5 mb-6 bg-white/10 border border-white/15 rounded-full text-[11px] font-semibold uppercase tracking-wider text-[#8FB1F7]">
