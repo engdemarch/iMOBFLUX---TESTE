@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Home, Image, Settings, MessageSquareQuote, Users, Lock, CreditCard, ArrowRight } from 'lucide-react';
+import { Home, Image, Settings, MessageSquareQuote, Users, Lock, CreditCard, HelpCircle, ArrowRight } from 'lucide-react';
 
 interface WelcomeModalProps {
   businessName: string;
@@ -15,7 +15,8 @@ const TABS = [
   { icon: MessageSquareQuote, name: 'Depoimentos', text: 'Avaliações de clientes exibidas no seu site.' },
   { icon: Users, name: 'Corretores', text: 'Sua equipe, se você trabalha com mais de um corretor.' },
   { icon: Lock, name: 'Acesso & Senha', text: 'Troque sua senha de acesso ao painel.' },
-  { icon: CreditCard, name: 'Assinatura', text: 'Status do seu plano e gerenciamento do pagamento.' }
+  { icon: CreditCard, name: 'Assinatura', text: 'Status do seu plano e gerenciamento do pagamento.' },
+  { icon: HelpCircle, name: 'Suporte', text: 'Tire dúvidas com o assistente automático, a qualquer hora.' }
 ];
 
 export const WelcomeModal: React.FC<WelcomeModalProps> = ({ businessName, onClose }) => {

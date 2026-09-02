@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { LiveDemoShowcase } from '@/components/templates/LiveDemoShowcase';
 import { Logo } from '@/components/Logo';
+import { SupportChatWidget } from '@/components/SupportChat';
 
 const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'localhost';
 
@@ -429,6 +430,8 @@ export default function MarketingPage() {
           </div>
         </div>
       </footer>
+
+      <SupportChatWidget />
     </div>
   );
 }

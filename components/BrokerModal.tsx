@@ -27,7 +27,8 @@ import {
   Tag,
   Calendar,
   Users,
-  CreditCard
+  CreditCard,
+  HelpCircle
 } from 'lucide-react';
 import { Property, SiteConfig, Testimonial, Corretor } from '@/lib/types';
 import { formatPrice, formatRefCode, MAX_PHOTO_SIZE_MB } from '@/lib/storage';
@@ -39,6 +40,7 @@ import { LogoCropModal } from './LogoCropModal';
 import { CidadeSelect } from './CidadeSelect';
 import { PasswordInput } from './PasswordInput';
 import { WelcomeModal } from './WelcomeModal';
+import { SupportChatPanel } from './SupportChat';
 
 const MESES_PT = [
   'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
@@ -138,7 +140,7 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
   };
 
   // Active Tab
-  const [activeTab, setActiveTab] = useState<'imoveis' | 'form' | 'config' | 'testemunhos' | 'corretores' | 'seguranca' | 'assinatura'>('imoveis');
+  const [activeTab, setActiveTab] = useState<'imoveis' | 'form' | 'config' | 'testemunhos' | 'corretores' | 'seguranca' | 'assinatura' | 'suporte'>('imoveis');
   const [formSection, setFormSection] = useState<'imovel' | 'proprietario' | 'corretor'>('imovel');
 
   // Security / Credentials State
@@ -1159,6 +1161,18 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
                   >
                     <CreditCard className="w-3.5 h-3.5" />
                     <span>Assinatura</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('suporte')}
+                    className={`px-4 py-2.5 text-xs sm:text-sm font-semibold tracking-wider border-b-2 transition-colors whitespace-nowrap inline-flex items-center gap-1.5 ${
+                      activeTab === 'suporte'
+                        ? 'border-[#0F3D5C] text-[#0F3D5C]'
+                        : 'border-transparent text-[#68707C] hover:text-[#15263A]'
+                    }`}
+                  >
+                    <HelpCircle className="w-3.5 h-3.5" />
+                    <span>Suporte</span>
                   </button>
                 </div>
 
@@ -3247,6 +3261,27 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
                       ) : (
                         <p className="text-xs text-[#68707C]">Carregando dados da assinatura...</p>
                       )}
+                    </div>
+                  </div>
+                )}
+
+                {/* TAB: SUPORTE */}
+                {activeTab === 'suporte' && (
+                  <div className="max-w-xl">
+                    <div className="flex items-center gap-2.5 text-[#0F3D5C] pb-3 mb-4 border-b border-[#DEE2E7]">
+                      <HelpCircle className="w-5 h-5" />
+                      <h3 className="font-bold text-sm tracking-wider uppercase">Suporte</h3>
+                    </div>
+                    <p className="text-xs text-[#68707C] mb-4">
+                      Tire dúvidas sobre o sistema, pagamento ou uso geral com o assistente automático abaixo. Para
+                      questões mais específicas, escreva para{' '}
+                      <a href="mailto:eng.demarch@gmail.com" className="text-[#0F3D5C] font-semibold hover:underline">
+                        eng.demarch@gmail.com
+                      </a>
+                      .
+                    </p>
+                    <div className="h-[480px] border border-[#DEE2E7] rounded-[6px] overflow-hidden">
+                      <SupportChatPanel className="h-full" />
                     </div>
                   </div>
                 )}

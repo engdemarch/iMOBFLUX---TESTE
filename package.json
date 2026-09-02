@@ -12,6 +12,7 @@
     "delete-user": "tsx scripts/delete-user.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.123.0",
     "@google/genai": "^2.4.0",
     "@hookform/resolvers": "^5.2.1",
     "@supabase/ssr": "^0.12.4",
