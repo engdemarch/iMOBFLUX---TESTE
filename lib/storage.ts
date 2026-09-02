@@ -82,7 +82,7 @@ export const DEMO_PROPERTIES: Property[] = [
     tags: ['Aceita permuta', 'Parcelamento direto'],
     descricao: 'Casa térrea reformada, com quintal amplo, churrasqueira e ótima localização próxima ao comércio do bairro.\n\nPossui acabamento em gesso, piso porcelanato e móveis sob medida na cozinha e banheiros.',
     fotos: [
-      'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1570129477492-45c003edd2be?auto=format&fit=crop&w=1200&q=80',
       'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80',
       'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=1200&q=80',
       'https://images.unsplash.com/photo-1616594039964-ae9021a400a0?auto=format&fit=crop&w=1200&q=80',

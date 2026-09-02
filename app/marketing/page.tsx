@@ -93,7 +93,7 @@ const FLOATING_CARDS = [
 // visual do produto pra todo mundo, independente da janela do navegador.
 const SHOWCASE_STRIP = [
   {
-    img: 'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?auto=format&fit=crop&w=400&q=80',
+    img: 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?auto=format&fit=crop&w=400&q=80',
     label: 'Casa Térrea',
     meta: '3 quartos · R$ 620.000'
   },
