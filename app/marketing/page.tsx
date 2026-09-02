@@ -14,6 +14,7 @@ import {
   Zap
 } from 'lucide-react';
 import { LiveDemoShowcase } from '@/components/templates/LiveDemoShowcase';
+import { Logo } from '@/components/Logo';
 
 const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'localhost';
 
@@ -68,25 +69,41 @@ const ADVANTAGES = [
   }
 ];
 
+const FLOATING_CARDS = [
+  {
+    img: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=400&q=80',
+    label: 'Casa de Condomínio',
+    className: 'hidden 2xl:block left-0 top-10 -rotate-6'
+  },
+  {
+    img: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=400&q=80',
+    label: 'Apartamento',
+    className: 'hidden 2xl:block right-0 top-6 rotate-6'
+  },
+  {
+    img: 'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?auto=format&fit=crop&w=400&q=80',
+    label: 'Casa Térrea',
+    className: 'hidden 2xl:block left-8 bottom-10 rotate-3'
+  }
+];
+
 export default function MarketingPage() {
   return (
-    <div className="min-h-screen bg-[#F2F4F6] text-[#15263A]">
+    <div className="min-h-screen bg-[#F2F4F6] text-[#15263A] overflow-x-hidden">
       {/* Nav */}
-      <header className="sticky top-0 z-30 bg-[#F2F4F6]/90 backdrop-blur-sm border-b border-[#DEE2E7]">
+      <header className="sticky top-0 z-30 bg-[#081527]/85 backdrop-blur-md border-b border-white/10">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-          <div className="text-sm font-bold tracking-[0.12em] uppercase text-[#0F3D5C]">
-            ImobFlux
-          </div>
+          <Logo variant="dark" iconClassName="w-6 h-6" textClassName="text-base" />
           <nav className="flex items-center gap-2 sm:gap-3">
             <Link
               href="/signup?mode=login"
-              className="px-3.5 sm:px-4 py-2 text-xs font-semibold uppercase tracking-wider text-[#0F3D5C] hover:text-[#0B2C44] transition-colors"
+              className="px-3.5 sm:px-4 py-2 text-xs font-semibold uppercase tracking-wider text-white/80 hover:text-white transition-colors"
             >
               Entrar
             </Link>
             <Link
               href="/signup"
-              className="px-3.5 sm:px-4 py-2.5 bg-[#0F3D5C] hover:bg-[#0B2C44] text-white text-xs font-semibold uppercase tracking-wider rounded-[2px] transition-colors"
+              className="px-3.5 sm:px-4 py-2.5 bg-[#5B8DEF] hover:bg-[#4A7CE0] text-white text-xs font-semibold uppercase tracking-wider rounded-[2px] transition-colors"
             >
               Criar minha conta
             </Link>
@@ -94,47 +111,69 @@ export default function MarketingPage() {
         </div>
       </header>
 
-      {/* Hero */}
-      <section className="relative max-w-6xl mx-auto px-4 sm:px-6 pt-16 pb-20 sm:pt-24 sm:pb-28 text-center overflow-hidden">
+      {/* Hero — fundo escuro com glow, igual à referência */}
+      <section className="relative bg-[#081527] overflow-hidden">
         <div
           aria-hidden
-          className="pointer-events-none absolute -z-10 -top-24 left-1/2 -translate-x-1/2 w-[600px] h-[600px] rounded-full opacity-40 blur-3xl"
-          style={{ background: 'radial-gradient(circle, #0F3D5C33, transparent 70%)' }}
+          className="pointer-events-none absolute -z-0 top-[-260px] left-1/2 -translate-x-1/2 w-[900px] h-[900px] rounded-full opacity-60 blur-3xl"
+          style={{ background: 'radial-gradient(circle, #2A5FD9 0%, #14275C 45%, transparent 72%)' }}
         />
-        <div className="inline-flex items-center gap-1.5 px-3 py-1.5 mb-6 bg-white border border-[#DEE2E7] rounded-full text-[11px] font-semibold uppercase tracking-wider text-[#0F3D5C] relative">
-          <Star className="w-3.5 h-3.5 fill-[#0F3D5C]" />
-          7 dias grátis para testar
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -z-0 bottom-[-200px] right-[-100px] w-[500px] h-[500px] rounded-full opacity-40 blur-3xl"
+          style={{ background: 'radial-gradient(circle, #5B8DEF 0%, transparent 70%)' }}
+        />
+
+        <div className="relative max-w-6xl mx-auto px-4 sm:px-6 pt-16 pb-24 sm:pt-24 sm:pb-32 text-center">
+          {FLOATING_CARDS.map((card) => (
+            <div
+              key={card.label}
+              className={`absolute w-36 border border-white/15 rounded-[6px] overflow-hidden shadow-2xl bg-white/5 backdrop-blur-sm z-0 ${card.className}`}
+            >
+              <img src={card.img} alt="" className="w-full h-20 object-cover" />
+              <div className="px-2.5 py-2">
+                <p className="text-[10px] font-semibold text-white/90 truncate">{card.label}</p>
+              </div>
+            </div>
+          ))}
+
+          <div className="relative z-10 max-w-3xl mx-auto">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 mb-6 bg-white/10 border border-white/15 rounded-full text-[11px] font-semibold uppercase tracking-wider text-[#8FB1F7]">
+              <Star className="w-3.5 h-3.5 fill-[#8FB1F7]" />
+              7 dias grátis para testar
+            </div>
+            <h1 className="text-4xl sm:text-6xl font-bold mb-6 leading-tight text-white">
+              Seu próprio site de imóveis, no ar em minutos
+            </h1>
+            <p className="text-base sm:text-lg text-white/65 max-w-xl mx-auto mb-10">
+              Catálogo de imóveis, painel de gestão completo e um endereço só seu —{' '}
+              <span className="font-semibold text-white">seunome.{rootDomain}</span> — pra você vender mais sem
+              depender de portal nenhum.
+            </p>
+          </div>
+          <div className="relative z-10 flex flex-col sm:flex-row items-center justify-center gap-3">
+            <Link
+              href="/signup"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 bg-[#5B8DEF] hover:bg-[#4A7CE0] text-white text-xs font-semibold uppercase tracking-wider rounded-[2px] transition-colors shadow-[0_0_30px_-5px_#5B8DEF]"
+            >
+              Criar minha conta grátis
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+            <a
+              href="#como-funciona"
+              className="w-full sm:w-auto inline-flex items-center justify-center px-7 py-3.5 bg-white/5 border border-white/20 hover:border-white/40 text-white text-xs font-semibold uppercase tracking-wider rounded-[2px] transition-colors"
+            >
+              Ver como funciona
+            </a>
+          </div>
+          <p className="text-[11px] text-white/50 mt-4">
+            R$ 37,90/mês depois do teste grátis. Cancele quando quiser, sem multa.
+          </p>
         </div>
-        <h1 className="text-4xl sm:text-6xl font-bold max-w-3xl mx-auto mb-6 leading-tight">
-          Seu próprio site de imóveis, no ar em minutos
-        </h1>
-        <p className="text-base sm:text-lg text-[#68707C] max-w-xl mx-auto mb-10">
-          Catálogo de imóveis, painel de gestão completo e um endereço só seu —{' '}
-          <span className="font-semibold text-[#15263A]">seunome.{rootDomain}</span> — pra você vender mais sem
-          depender de portal nenhum.
-        </p>
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-          <Link
-            href="/signup"
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 bg-[#0F3D5C] hover:bg-[#0B2C44] text-white text-xs font-semibold uppercase tracking-wider rounded-[2px] transition-colors"
-          >
-            Criar minha conta grátis
-            <ArrowRight className="w-4 h-4" />
-          </Link>
-          <a
-            href="#como-funciona"
-            className="w-full sm:w-auto inline-flex items-center justify-center px-7 py-3.5 bg-white border border-[#DEE2E7] hover:border-[#0F3D5C] text-[#15263A] text-xs font-semibold uppercase tracking-wider rounded-[2px] transition-colors"
-          >
-            Ver como funciona
-          </a>
-        </div>
-        <p className="text-[11px] text-[#68707C] mt-4">
-          R$ 37,90/mês depois do teste grátis. Cancele quando quiser, sem multa.
-        </p>
       </section>
 
       {/* Demo ao vivo */}
-      <section className="max-w-[1440px] mx-auto px-4 sm:px-6 pb-20 sm:pb-28">
+      <section className="max-w-[1440px] mx-auto px-4 sm:px-6 py-20 sm:py-28">
         <LiveDemoShowcase />
       </section>
 
@@ -194,22 +233,27 @@ export default function MarketingPage() {
         </div>
       </section>
 
-      {/* Pricing / CTA final */}
-      <section className="bg-[#0F3D5C] text-white">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-16 sm:py-20 text-center">
-          <h2 className="text-2xl sm:text-3xl font-bold mb-3">Comece grátis hoje mesmo</h2>
-          <p className="text-sm sm:text-base text-white/75 max-w-md mx-auto mb-8">
+      {/* Pricing / CTA final — escuro com glow, ecoa o hero */}
+      <section className="relative bg-[#081527] overflow-hidden">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -z-0 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] rounded-full opacity-50 blur-3xl"
+          style={{ background: 'radial-gradient(circle, #2A5FD9 0%, transparent 70%)' }}
+        />
+        <div className="relative max-w-4xl mx-auto px-4 sm:px-6 py-16 sm:py-20 text-center">
+          <h2 className="text-2xl sm:text-3xl font-bold mb-3 text-white">Comece grátis hoje mesmo</h2>
+          <p className="text-sm sm:text-base text-white/65 max-w-md mx-auto mb-8">
             7 dias de teste completo, sem cobrança. Depois, R$ 37,90/mês — cancele quando quiser, direto pelo painel.
           </p>
           <div className="inline-flex flex-col items-center gap-4">
             <Link
               href="/signup"
-              className="inline-flex items-center justify-center gap-2 px-8 py-3.5 bg-white hover:bg-[#F2F4F6] text-[#0F3D5C] text-xs font-semibold uppercase tracking-wider rounded-[2px] transition-colors"
+              className="inline-flex items-center justify-center gap-2 px-8 py-3.5 bg-[#5B8DEF] hover:bg-[#4A7CE0] text-white text-xs font-semibold uppercase tracking-wider rounded-[2px] transition-colors shadow-[0_0_30px_-5px_#5B8DEF]"
             >
               Criar minha conta grátis
               <ArrowRight className="w-4 h-4" />
             </Link>
-            <ul className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-white/75">
+            <ul className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-white/60">
               <li className="inline-flex items-center gap-1.5">
                 <Check className="w-3.5 h-3.5" /> Sem cartão travado
               </li>
@@ -225,23 +269,23 @@ export default function MarketingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="max-w-6xl mx-auto px-4 sm:px-6 py-10 flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="text-xs font-semibold tracking-[0.12em] uppercase text-[#0F3D5C]">
-          ImobFlux
-        </div>
-        <div className="flex items-center gap-5 text-xs text-[#68707C]">
-          <Link href="/signup" className="hover:text-[#15263A] transition-colors">
-            Criar conta
-          </Link>
-          <Link href="/signup?mode=login" className="hover:text-[#15263A] transition-colors">
-            Entrar
-          </Link>
-          <Link href="/termos" className="hover:text-[#15263A] transition-colors">
-            Termos de Uso
-          </Link>
-          <Link href="/privacidade" className="hover:text-[#15263A] transition-colors">
-            Privacidade
-          </Link>
+      <footer className="bg-[#081527]">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <Logo variant="dark" iconClassName="w-5 h-5" textClassName="text-sm" />
+          <div className="flex items-center gap-5 text-xs text-white/50">
+            <Link href="/signup" className="hover:text-white transition-colors">
+              Criar conta
+            </Link>
+            <Link href="/signup?mode=login" className="hover:text-white transition-colors">
+              Entrar
+            </Link>
+            <Link href="/termos" className="hover:text-white transition-colors">
+              Termos de Uso
+            </Link>
+            <Link href="/privacidade" className="hover:text-white transition-colors">
+              Privacidade
+            </Link>
+          </div>
         </div>
       </footer>
     </div>
