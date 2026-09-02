@@ -31,7 +31,7 @@ export default function FinalizingPage() {
 
       if (data?.slug) {
         const port = window.location.port ? `:${window.location.port}` : '';
-        window.location.href = `${window.location.protocol}//${data.slug}.${rootDomain}${port}`;
+        window.location.href = `${window.location.protocol}//${data.slug}.${rootDomain}${port}/?panel=1&welcome=1`;
         return;
       }
 

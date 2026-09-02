@@ -38,6 +38,7 @@ import { ESTADOS_BR, fetchEnderecoPorCep, formatCep } from '@/lib/brasil';
 import { LogoCropModal } from './LogoCropModal';
 import { CidadeSelect } from './CidadeSelect';
 import { PasswordInput } from './PasswordInput';
+import { WelcomeModal } from './WelcomeModal';
 
 const MESES_PT = [
   'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
@@ -63,6 +64,7 @@ interface BrokerModalProps {
   onUpdateProperties: (newProperties: Property[]) => void;
   onUpdateTestimonials: (newTestimonials: Testimonial[]) => void;
   onUpdateCorretores?: (newCorretores: Corretor[]) => void;
+  showWelcome?: boolean;
 }
 
 export const BrokerModal: React.FC<BrokerModalProps> = ({
@@ -76,8 +78,10 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
   onUpdateConfig,
   onUpdateProperties,
   onUpdateTestimonials,
-  onUpdateCorretores
+  onUpdateCorretores,
+  showWelcome = false
 }) => {
+  const [welcomeDismissed, setWelcomeDismissed] = useState(false);
   // Session State
   // ownerTenantId é o tenant que a conta logada POSSUI; isLoggedIn só é
   // verdadeiro quando bate com o tenantId sendo VISITADO (este site). Sem essa
@@ -912,6 +916,9 @@ export const BrokerModal: React.FC<BrokerModalProps> = ({
 
   return (
     <>
+      {isLoggedIn && showWelcome && !welcomeDismissed && (
+        <WelcomeModal businessName={config.nome || 'corretor(a)'} onClose={() => setWelcomeDismissed(true)} />
+      )}
       <div
         onClick={(e) => {
           if (e.target === e.currentTarget) onClose();

@@ -112,7 +112,7 @@ export const Footer: React.FC<FooterProps> = ({ config, onOpenBrokerModal }) => 
             className="inline-flex items-center gap-1.5 text-xs text-[#8B8E86] hover:text-[#C9C6BB] transition-colors underline underline-offset-4 cursor-pointer"
           >
             <Lock className="w-3 h-3" />
-            <span>ImobFlux</span>
+            <span>Área do Corretor</span>
           </button>
         </div>
       </div>

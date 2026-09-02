@@ -42,6 +42,7 @@ export default function Home() {
 
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
   const [brokerModalOpen, setBrokerModalOpen] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(false);
 
   const [filters, setFilters] = useState<FilterState>({
     transacao: '',
@@ -77,10 +78,16 @@ export default function Home() {
   }, [loadTenantData]);
 
   // Login feito em /signup (domínio raiz) redireciona pra cá com ?panel=1
-  // pra abrir direto no painel do corretor em vez do site público.
+  // pra abrir direto no painel do corretor em vez do site público. O fim do
+  // cadastro (app/signup/finalizing) também adiciona &welcome=1 pra mostrar
+  // o tour rápido das abas na primeira entrada.
   useEffect(() => {
-    if (new URLSearchParams(window.location.search).get('panel') === '1') {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('panel') === '1') {
       setBrokerModalOpen(true);
+      if (params.get('welcome') === '1') {
+        setShowWelcome(true);
+      }
       window.history.replaceState({}, '', window.location.pathname);
     }
   }, []);
@@ -178,6 +185,7 @@ export default function Home() {
           testimonials={testimonials}
           corretores={corretores}
           tenantId={tenantId}
+          showWelcome={showWelcome}
           onUpdateConfig={(newConfig) => {
             setConfig(newConfig);
             saveConfig(tenantId, newConfig);
