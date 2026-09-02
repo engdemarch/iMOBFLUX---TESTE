@@ -22,17 +22,20 @@ const STEPS = [
   {
     icon: UserPlus,
     title: 'Crie sua conta',
-    text: 'Escolha o endereço do seu site e cadastre-se em menos de 2 minutos. 7 dias grátis, sem compromisso.'
+    text: 'Escolha o endereço do seu site e cadastre-se em menos de 2 minutos. 7 dias grátis, sem compromisso.',
+    img: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=500&q=80'
   },
   {
     icon: Palette,
     title: 'Personalize seu site',
-    text: 'Adicione seu logo, suas cores, fotos e dados de contato. Cadastre seus imóveis com fotos, preço e descrição.'
+    text: 'Adicione seu logo, suas cores, fotos e dados de contato. Cadastre seus imóveis com fotos, preço e descrição.',
+    img: 'https://images.unsplash.com/photo-1581291518857-4e27b48ff24e?auto=format&fit=crop&w=500&q=80'
   },
   {
     icon: Rocket,
     title: 'Comece a vender',
-    text: `Compartilhe seunome.${rootDomain} nas redes sociais e anúncios. Seus clientes navegam, filtram e te chamam no WhatsApp.`
+    text: `Compartilhe seunome.${rootDomain} nas redes sociais e anúncios. Seus clientes navegam, filtram e te chamam no WhatsApp.`,
+    img: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&w=500&q=80'
   }
 ];
 
@@ -76,19 +79,45 @@ const FLOATING_CARDS = [
     img: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=400&q=80',
     label: 'Casa de Condomínio',
     meta: '4 quartos · R$ 1.280.000',
-    className: 'hidden 2xl:block left-0 top-6 -rotate-6'
+    className: 'hidden lg:block left-0 top-4 -rotate-6'
   },
   {
     img: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=400&q=80',
     label: 'Apartamento',
     meta: '2 quartos · R$ 410.000',
-    className: 'hidden 2xl:block right-0 top-2 rotate-6'
+    className: 'hidden lg:block right-0 top-0 rotate-6'
   },
   {
     img: 'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?auto=format&fit=crop&w=400&q=80',
     label: 'Casa Térrea',
     meta: '3 quartos · R$ 620.000',
-    className: 'hidden 2xl:block left-10 bottom-4 rotate-3'
+    className: 'hidden lg:block left-6 bottom-2 rotate-3'
+  }
+];
+
+// Faixa de mockups sempre visível (qualquer largura de tela), logo abaixo
+// dos botões do hero — garante que sempre tem imagem/elemento na página,
+// independente da janela do navegador do visitante.
+const SHOWCASE_STRIP = [
+  {
+    img: 'https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?auto=format&fit=crop&w=400&q=80',
+    label: 'Sobrado de Luxo',
+    meta: '4 quartos · R$ 1.280.000'
+  },
+  {
+    img: 'https://images.unsplash.com/photo-1507089947368-19c1da9775ae?auto=format&fit=crop&w=400&q=80',
+    label: 'Apartamento Mobiliado',
+    meta: '2 quartos · R$ 410.000'
+  },
+  {
+    img: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=400&q=80',
+    label: 'Terreno em Condomínio',
+    meta: '420m² · R$ 295.000'
+  },
+  {
+    img: 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=400&q=80',
+    label: 'Casa de Praia',
+    meta: '3 quartos · R$ 750.000'
   }
 ];
 
@@ -133,7 +162,7 @@ export default function MarketingPage() {
           {FLOATING_CARDS.map((card) => (
             <div
               key={card.label}
-              className={`absolute w-40 rounded-[8px] overflow-hidden shadow-2xl bg-white z-0 ${card.className}`}
+              className={`absolute w-32 xl:w-40 rounded-[8px] overflow-hidden shadow-2xl bg-white z-0 ${card.className}`}
             >
               <div className="h-5 bg-[#F2F4F6] border-b border-[#DEE2E7] flex items-center gap-1 px-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#FF5F57]" />
@@ -149,7 +178,7 @@ export default function MarketingPage() {
           ))}
 
           {/* Mockup de celular flutuando, mostrando a tela do produto */}
-          <div className="hidden 2xl:block absolute right-6 bottom-0 w-32 rotate-3 z-0">
+          <div className="hidden lg:block absolute right-2 bottom-0 w-24 xl:w-32 rotate-3 z-0">
             <div className="rounded-[20px] border-[3px] border-[#0B1B2E] bg-[#081527] shadow-2xl overflow-hidden">
               <div className="relative bg-white" style={{ aspectRatio: '9 / 18.5' }}>
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-10 h-2.5 bg-[#0B1B2E] rounded-b-md z-10" />
@@ -202,6 +231,27 @@ export default function MarketingPage() {
           <p className="text-[11px] text-white/50 mt-4">
             R$ 37,90/mês depois do teste grátis. Cancele quando quiser, sem multa.
           </p>
+
+          {/* Faixa de imóveis — sempre visível, qualquer tamanho de tela */}
+          <div className="relative z-10 mt-16 flex gap-4 overflow-x-auto pb-2 sm:justify-center sm:overflow-visible sm:flex-wrap snap-x snap-mandatory">
+            {SHOWCASE_STRIP.map((item) => (
+              <div
+                key={item.label}
+                className="shrink-0 snap-start w-44 rounded-[8px] overflow-hidden shadow-2xl bg-white"
+              >
+                <div className="h-5 bg-[#F2F4F6] border-b border-[#DEE2E7] flex items-center gap-1 px-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#FF5F57]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#FEBC2E]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#28C840]" />
+                </div>
+                <img src={item.img} alt="" className="w-full h-24 object-cover" />
+                <div className="px-2.5 py-2 text-left">
+                  <p className="text-[11px] font-bold text-[#15263A] truncate">{item.label}</p>
+                  <p className="text-[10px] text-[#68707C] truncate">{item.meta}</p>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -224,10 +274,13 @@ export default function MarketingPage() {
               const Icon = step.icon;
               return (
                 <div key={step.title} className="relative text-center sm:text-left">
-                  <div className="inline-flex items-center justify-center w-12 h-12 bg-[#F2F4F6] border border-[#DEE2E7] rounded-full text-[#0F3D5C] mb-4">
-                    <Icon className="w-5 h-5" />
+                  <div className="relative mb-4 rounded-[8px] overflow-hidden border border-[#DEE2E7] shadow-sm">
+                    <img src={step.img} alt="" className="w-full h-32 object-cover" />
+                    <div className="absolute -bottom-4 left-4 sm:left-4 inline-flex items-center justify-center w-10 h-10 bg-white border border-[#DEE2E7] rounded-full text-[#0F3D5C] shadow-md">
+                      <Icon className="w-4.5 h-4.5" />
+                    </div>
                   </div>
-                  <div className="text-[11px] font-bold tracking-wider uppercase text-[#68707C] mb-1">
+                  <div className="text-[11px] font-bold tracking-wider uppercase text-[#68707C] mt-6 mb-1">
                     Passo {i + 1}
                   </div>
                   <h3 className="text-lg font-bold text-[#15263A] mb-2">{step.title}</h3>
