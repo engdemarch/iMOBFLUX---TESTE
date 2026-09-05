@@ -18,6 +18,7 @@ import {
 import { LiveDemoShowcase } from '@/components/templates/LiveDemoShowcase';
 import { Logo } from '@/components/Logo';
 import { SupportChatWidget } from '@/components/SupportChat';
+import { TrackedLink } from '@/components/TrackedLink';
 
 const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'localhost';
 
@@ -71,7 +72,7 @@ const STEPS = [
   }
 ];
 
-const OFERTA_HIGHLIGHTS = ['7 dias grátis', 'Sem cartão de crédito', 'Sem compromisso', 'Comece agora'];
+const OFERTA_HIGHLIGHTS = ['7 dias grátis', 'R$ 47,90/ano', 'Sem fidelidade', 'Comece agora'];
 
 // Mockups de janela de navegador usados no hero e na seção de produto, no
 // estilo "screenshot flutuante" — cartão branco com barra de título.
@@ -159,7 +160,17 @@ function PhoneMockup({ className = '' }: { className?: string }) {
   );
 }
 
-function CtaButton({ href, children, variant = 'primary' }: { href: string; children: ReactNode; variant?: 'primary' | 'onDark' }) {
+function CtaButton({
+  href,
+  children,
+  variant = 'primary',
+  metaContentName
+}: {
+  href: string;
+  children: ReactNode;
+  variant?: 'primary' | 'onDark';
+  metaContentName: string;
+}) {
   const base =
     'group inline-flex items-center justify-center gap-2 px-7 py-3.5 text-sm font-bold rounded-full transition-all duration-200 hover:scale-[1.03] active:scale-[0.98]';
   const styles =
@@ -167,16 +178,29 @@ function CtaButton({ href, children, variant = 'primary' }: { href: string; chil
       ? 'bg-gradient-to-b from-[#1A4D73] to-[#0B2C44] hover:from-[#1D5680] hover:to-[#0F3D5C] text-white shadow-[0_12px_30px_-8px_rgba(15,61,92,0.55)]'
       : 'bg-white hover:bg-[#F2F4F6] text-[#0F3D5C] shadow-[0_12px_30px_-8px_rgba(0,0,0,0.25)]';
   return (
-    <Link href={href} className={`${base} ${styles}`}>
+    <TrackedLink
+      href={href}
+      className={`${base} ${styles}`}
+      metaEvent="Lead"
+      metaParams={{ content_name: metaContentName }}
+    >
       {children}
       <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5" />
-    </Link>
+    </TrackedLink>
   );
 }
 
 export default function MarketingPage() {
   return (
     <div className="min-h-screen bg-white text-[#15263A] overflow-x-hidden">
+      {/* Faixa de promoção de lançamento */}
+      <Link
+        href="#oferta"
+        className="block bg-[#0B2C44] hover:bg-[#0F3D5C] text-white text-center text-xs sm:text-sm font-semibold py-2 px-4 transition-colors"
+      >
+        🚀 Promoção de lançamento: assinatura anual por <strong>R$ 47,90</strong> — economize 89%
+      </Link>
+
       {/* Nav */}
       <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-[#DEE2E7]">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
@@ -188,12 +212,14 @@ export default function MarketingPage() {
             >
               Entrar
             </Link>
-            <Link
+            <TrackedLink
               href="/signup"
               className="px-4 sm:px-5 py-2.5 bg-[#0F3D5C] hover:bg-[#0B2C44] hover:scale-[1.03] active:scale-[0.98] text-white text-sm font-bold rounded-full transition-all duration-200 shadow-[0_8px_20px_-6px_rgba(15,61,92,0.5)]"
+              metaEvent="Lead"
+              metaParams={{ content_name: 'header_testar_gratis' }}
             >
               Testar grátis
-            </Link>
+            </TrackedLink>
           </nav>
         </div>
       </header>
@@ -212,9 +238,21 @@ export default function MarketingPage() {
           <PhoneMockup className="hidden lg:block absolute right-2 bottom-0 rotate-3 z-0" />
 
           <div className="relative z-10 max-w-3xl mx-auto">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 mb-6 bg-[#0F3D5C]/8 border border-[#0F3D5C]/15 rounded-full text-[11px] font-bold uppercase tracking-wider text-[#0F3D5C]">
-              <Star className="w-3.5 h-3.5 fill-[#0F3D5C]" />
-              7 dias grátis, sem cartão de crédito
+            <div className="inline-flex flex-col items-center gap-1 mb-7 px-7 py-5 bg-white rounded-3xl shadow-[0_20px_45px_-18px_rgba(15,61,92,0.4)] border border-[#DEE2E7]">
+              <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-[#68707C]">
+                <Star className="w-3 h-3 fill-[#0F3D5C] text-[#0F3D5C]" />
+                Promoção de lançamento
+              </span>
+              <div className="flex items-end gap-1.5">
+                <span className="text-lg sm:text-xl font-bold text-[#0F3D5C] mb-1.5 sm:mb-2">R$</span>
+                <span className="text-6xl sm:text-7xl font-extrabold text-[#0F3D5C] leading-none tracking-tight">
+                  47,90
+                </span>
+                <span className="text-sm sm:text-base font-bold text-[#68707C] mb-1.5 sm:mb-2">/ano</span>
+              </div>
+              <span className="text-xs sm:text-sm font-bold text-[#237A46] mt-1">
+                Vale muito a pena: menos de R$ 4/mês por um site que trabalha por você 24h.
+              </span>
             </div>
             <h1 className="text-4xl sm:text-6xl font-bold mb-6 leading-tight text-[#0B1B2E]">
               Seu próximo cliente pode estar procurando por você agora.
@@ -225,10 +263,10 @@ export default function MarketingPage() {
             </p>
           </div>
           <div className="relative z-10 flex flex-col sm:flex-row items-center justify-center gap-3">
-            <CtaButton href="/signup">Quero testar grátis por 7 dias</CtaButton>
+            <CtaButton href="/signup" metaContentName="hero_quero_testar">Quero testar grátis por 7 dias</CtaButton>
           </div>
           <p className="relative z-10 text-xs text-[#68707C] mt-4 font-medium">
-            ✓ 7 dias grátis &nbsp; ✓ Sem cartão de crédito &nbsp; ✓ Comece em poucos minutos
+            ✓ 7 dias grátis &nbsp; ✓ R$ 47,90/ano (promoção) &nbsp; ✓ Comece em poucos minutos
           </p>
 
           {/* Faixa de imóveis — sempre visível, qualquer tamanho de tela */}
@@ -282,7 +320,7 @@ export default function MarketingPage() {
             <LiveDemoShowcase />
           </div>
           <div className="text-center">
-            <CtaButton href="/signup">Quero criar meu site</CtaButton>
+            <CtaButton href="/signup" metaContentName="beneficios_quero_criar">Quero criar meu site</CtaButton>
           </div>
         </div>
       </section>
@@ -357,37 +395,58 @@ export default function MarketingPage() {
             })}
           </div>
           <div className="text-center">
-            <CtaButton href="/signup">Começar agora — é grátis</CtaButton>
+            <CtaButton href="/signup" metaContentName="como_funciona_comecar">Começar agora — é grátis</CtaButton>
           </div>
         </div>
       </section>
 
       {/* SEÇÃO DE OFERTA */}
-      <section className="relative bg-[#0F3D5C] overflow-hidden">
+      <section id="oferta" className="relative bg-[#0F3D5C] overflow-hidden">
         <div
           aria-hidden
           className="pointer-events-none absolute -z-0 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] rounded-full opacity-40 blur-3xl"
           style={{ background: 'radial-gradient(circle, #5B8DEF 0%, transparent 70%)' }}
         />
         <div className="relative max-w-3xl mx-auto px-4 sm:px-6 py-16 sm:py-20 text-center">
-          <h2 className="text-2xl sm:text-3xl font-bold mb-4 text-white">Experimente o ImobFlux por 7 dias.</h2>
-          <p className="text-sm sm:text-base text-white/70 leading-relaxed mb-2">
-            Não precisa acreditar apenas no que estamos dizendo.
+          <div className="inline-flex items-center gap-1.5 px-3 py-1.5 mb-6 bg-white/10 border border-white/20 rounded-full text-[11px] font-bold uppercase tracking-wider text-white">
+            <Rocket className="w-3.5 h-3.5" />
+            Promoção de lançamento — por tempo limitado
+          </div>
+          <h2 className="text-2xl sm:text-3xl font-bold mb-4 text-white">
+            Garanta o ImobFlux pelo menor preço que ele já teve.
+          </h2>
+          <p className="text-sm sm:text-base text-white/70 leading-relaxed mb-8 max-w-xl mx-auto">
+            Teste grátis por 7 dias. Depois, uma única cobrança por ano — sem mensalidade e sem susto na fatura.
           </p>
-          <p className="text-sm sm:text-base text-white/70 leading-relaxed mb-8">
-            Crie sua conta, monte seu site e veja na prática como funciona. Você tem 7 dias para experimentar
-            gratuitamente e decidir se o ImobFlux faz sentido para o seu negócio.
-          </p>
-          <ul className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-white/85 font-semibold mb-8">
+
+          <div className="inline-flex flex-col items-center bg-white/5 border border-white/15 rounded-3xl px-8 py-8 sm:px-14 sm:py-10 mb-8">
+            <span className="text-xs font-bold uppercase tracking-wider text-white/50 line-through">
+              De R$ 454,80/ano
+            </span>
+            <div className="flex items-end gap-1.5 mt-1">
+              <span className="text-lg font-bold text-white/70 mb-2">R$</span>
+              <span className="text-6xl sm:text-7xl font-extrabold text-white leading-none">47</span>
+              <span className="text-2xl font-bold text-white/70 mb-1.5">,90</span>
+            </div>
+            <span className="text-sm font-semibold text-white/80 mt-2">por ano — menos de R$ 4/mês</span>
+            <span className="mt-4 inline-flex items-center gap-1.5 px-3 py-1 bg-[#25D366]/15 border border-[#25D366]/30 rounded-full text-[11px] font-bold text-[#25D366]">
+              Economize 89%
+            </span>
+          </div>
+
+          <div>
+            <CtaButton href="/signup" variant="onDark" metaContentName="oferta_quero_garantir">
+              Quero garantir por R$ 47,90/ano
+            </CtaButton>
+          </div>
+
+          <ul className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-white/85 font-semibold mt-8">
             {OFERTA_HIGHLIGHTS.map((h) => (
               <li key={h} className="inline-flex items-center gap-1.5">
                 <Check className="w-3.5 h-3.5" /> {h}
               </li>
             ))}
           </ul>
-          <CtaButton href="/signup" variant="onDark">
-            Quero testar o ImobFlux grátis
-          </CtaButton>
         </div>
       </section>
 
@@ -404,7 +463,7 @@ export default function MarketingPage() {
             Comece com o que você tem hoje. Crie sua presença profissional na internet e esteja pronto quando o
             próximo cliente procurar por você.
           </p>
-          <CtaButton href="/signup" variant="onDark">
+          <CtaButton href="/signup" variant="onDark" metaContentName="cta_final_criar_gratis">
             Criar meu site grátis
           </CtaButton>
         </div>
